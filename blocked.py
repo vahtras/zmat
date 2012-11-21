@@ -249,6 +249,19 @@ class matrix:
             new.subblock[i]=self.subblock[i].T
         return new
 
+    def sqrt(self):
+        new=matrix(self.ncol,self.nrow)
+        for i in range(self.nblocks):
+            new.subblock[i]=self.subblock[i].invsqrt()
+        return new
+
+    def invsqrt(self):
+        new=matrix(self.ncol,self.nrow)
+        for i in range(self.nblocks):
+            new.subblock[i]=self.subblock[i].invsqrt()
+        return new
+        
+
     def func(self,f):
          """ Blockwise function of matrix"""
          new=matrix(self.ncol,self.nrow)

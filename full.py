@@ -402,14 +402,25 @@ class matrix(numpy.ndarray):
 
    def lowdin(self,S):
       invsq=lambda x: 1.0/math.sqrt(x)
-      Si12=S.func(invsq)
+      Si12=scipy.linalg.sqrtm(S.I)
+      return
+
+   def sqrt(self):
+      from scipy.linalg import sqrtm
+      return sqrtm(self).real.view(matrix)
+
+   def invsqrt(self):
+      from scipy.linalg import sqrtm
+      return sqrtm(self.I).real.view(matrix)
+
    def vec2diag(self):
       n=self.shape[0]
       new=matrix((n*n))
       new[:n*n:n+1]=self[:]
       return new.reshape((n,n))
+
    def func(self,f):
-      if 0:
+      if False:
          import scipy.linalg
          return scipy.linalg.funm(self,f)
       else:
