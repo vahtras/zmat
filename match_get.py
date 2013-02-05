@@ -19,11 +19,11 @@ def match_and_get(pattern):
         
 rules=[]
 
-for p in open('patterns').readlines():
+for p in open(sys.argv[1]).readlines():
     #print p.split()
     rules.append(match_and_get(p))
         
-with open(sys.argv[1]) as target:
+with open(sys.argv[2]) as target:
     for line in target:
         for t, m, g, r in rules:
             if m(line):
