@@ -666,6 +666,21 @@ class triangular(numpy.ndarray):
       self.sshape=getattr(obj,'sshape',(self.dim,self.dim))
       self.anti=getattr(obj,'anti',False)
       self.fmt=getattr(obj,'fmt',matrix.fmt)
+      
+   @staticmethod
+   def init(arr):
+      n = int(round(-0.5 + math.sqrt(0.25+2*len(arr))))
+      # should test for valid n
+      new = triangular((n, n))
+      ij = 0
+      for i in range(n):
+         for j in range(i+1):
+             new[i, j] = arr[ij]
+             ij += 1
+      return new
+
+
+
    def __str__(self):
       retstr="\n"
       r,c=self.sshape
