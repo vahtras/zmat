@@ -58,7 +58,7 @@ class EOF(Exception):
     def __str__(self):
         return "Trying to read past end of file: %s" % self.filename
 
-class fortranbinary():
+class FortranBinary():
     """Class for binary files compatible with Fortran Unformatted I/O"""
     pad = 4
     def __init__(self, name, status=None):
@@ -75,6 +75,12 @@ class fortranbinary():
         self.loc = 0
         self.reclen = 0
 
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self.readrec()
+
     def readrec(self):
         """Read a Fortran record"""
         head = self.file.read(self.pad)
@@ -88,6 +94,7 @@ class fortranbinary():
         self.loc = 0
         return self.data
 
+
     def readbuf(self, n, c):
         """Read data from current record"""
         start, stop = self.loc, self.loc+struct.calcsize(c*n)
@@ -97,16 +104,12 @@ class fortranbinary():
 
     def find(self, label):
         """Find string label in file"""
-        #import string
-        while True:
-            try:
-                rec = self.readrec()
-                #if string.find(rec, label) > -1:
-                if label in rec:
-                    break
-            except EOF:
-                print "%s not found on file %s" % (label, self.name)
-                sys.exit(1)
+        try:
+            for rec in self:
+                if label in rec: break
+        except(EOF):
+            print "%s not found on file %s" % (label, self.name)
+            sys.exit(1)
         return rec
 
     def close(self):

@@ -1,4 +1,4 @@
-from util.unformatted import fortranbinary
+from util.unformatted import FortranBinary
 import numpy as np
 
 def test_1():
@@ -13,7 +13,7 @@ def test_1():
       close(1)
       end
     """
-    fb = fortranbinary('fort.1')
+    fb = FortranBinary('fort.1')
     # first record is int 3
     fb.readrec()
     n = fb.readbuf(1, 'i')[0]
@@ -37,7 +37,7 @@ def test_2():
       close(1)
       end
     """
-    fb = fortranbinary('fort.2')
+    fb = FortranBinary('fort.2')
     rec  = fb.find('LABEL')
 
     assert rec == 'LABEL'
