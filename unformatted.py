@@ -50,13 +50,6 @@ import struct, sys
 #        if self.loc < 0:
 #            raise NameError("No " + label + " on " + self.name)
 #
-class EOF(Exception):
-    """Defines a simple end of file exception"""
-    def __init__(self, filename):
-        Exception.__init__(self)
-        self.filename = filename
-    def __str__(self):
-        return "Trying to read past end of file: %s" % self.filename
 
 class FortranBinary():
     """Class for binary files compatible with Fortran Unformatted I/O"""
@@ -85,8 +78,6 @@ class FortranBinary():
     def readrec(self):
         """Read a Fortran record"""
         head = self.file.read(self.pad)
-        #if len(head) != self.pad:
-        #    raise EOF(self.name)
         if head:
             size = struct.unpack('i', head)[0]
             self.data = self.file.read(size)
@@ -107,13 +98,8 @@ class FortranBinary():
 
     def find(self, label):
         """Find string label in file"""
-        try:
-            for rec in self:
-                if label in rec: break
-        except(EOF):
-            print "%s not found on file %s" % (label, self.name)
-            sys.exit(1)
-        return rec
+        for rec in self:
+            if label in rec: return rec
 
     def close(self):
         """Close file"""

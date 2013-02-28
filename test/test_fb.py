@@ -49,6 +49,25 @@ def test_2():
 
     assert rec == 'LABEL'
 
+def test_2b():
+    """Handle label not found
+
+      character*5 lab
+      integer n
+      lab = 'LABEL'
+      n = 0
+      open(1, file='fort.2', status='new', form='unformatted')
+      write(1) n
+      write(1) lab
+      close(1)
+      end
+    """
+    ffile = os.path.join(tdir, 'fort.2')
+    fb = FortranBinary(ffile)
+    rec  = fb.find('NOLABEL')
+
+    assert rec is None
+
 def test_3():
     """Iteration protocol
 
