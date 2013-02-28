@@ -69,7 +69,8 @@ class FortranBinary():
             try:
                 self.file = open(name, 'rwb', 10)
             except(IOError):
-                print "%s: file %s not found"
+                print "%s: file %s not found" % (__name__ + '.' + self.__class__.__name__, name)
+                raise IOError
                 sys.exit(1)
         self.data = None
         self.loc = 0
