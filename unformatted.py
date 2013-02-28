@@ -85,16 +85,18 @@ class FortranBinary():
     def readrec(self):
         """Read a Fortran record"""
         head = self.file.read(self.pad)
-        if len(head) != self.pad:
-            raise EOF(self.name)
-        size = struct.unpack('i', head)[0]
-        self.data = self.file.read(size)
-        self.reclen = size
-        tail = self.file.read(self.pad)
-        assert head == tail
-        self.loc = 0
-        return self.data
-
+        #if len(head) != self.pad:
+        #    raise EOF(self.name)
+        if head:
+            size = struct.unpack('i', head)[0]
+            self.data = self.file.read(size)
+            self.reclen = size
+            tail = self.file.read(self.pad)
+            assert head == tail
+            self.loc = 0
+            return self.data
+        else:
+            raise StopIteration
 
     def readbuf(self, n, c):
         """Read data from current record"""
