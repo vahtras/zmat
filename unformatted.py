@@ -4,53 +4,6 @@
 """
 import struct, sys
 
-#
-#class file:
-#    eorskip = 8
-#    def __init__(self, name, status=None):
-#        self.name = name
-#        if status == 'new':
-#            self.file = open(name,'w')
-#            self.data = ""
-#            self.size = 0
-#            self.loc = 0
-#        else:
-#            self.file = open(name,'rw')
-#            self.data = self.file.read()
-#            self.size = len(self.data)
-#            self.loc = 0
-#
-#    def rewind(self):
-#        self.loc = 0
-#
-#    def close(self):
-#        self.file.close()
-#
-#    def writebuf(self,c,data):
-#        n=len(data)
-#        for i in range(n):
-#            self.data += struct.pack(c,data[i])
-#        self.size = len(self.data)
-#        self.loc = self.size
-#        self.file.write(self.data)
-#
-#    def readbuf(self, n, c, eor=False):
-#        start, stop = self.loc,self.loc+struct.calcsize(c*n)
-#        vec = struct.unpack(c*n,self.data[start:stop])
-#        self.loc = stop
-#        if eor:
-#            self.loc += file.eorskip
-#        return vec
-#
-#    def find(self,label):
-#        import string
-#        bytes = struct.unpack('c'*self.size,self.data)
-#        filestring = "".join(bytes)
-#        self.loc = string.find(filestring,label)
-#        if self.loc < 0:
-#            raise NameError("No " + label + " on " + self.name)
-#
-
 class FortranBinary():
     """Class for binary files compatible with Fortran Unformatted I/O"""
     pad = 4
