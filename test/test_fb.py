@@ -47,7 +47,7 @@ def test_2():
     fb = FortranBinary(ffile)
     rec  = fb.find('LABEL')
 
-    assert rec == 'LABEL'
+    assert rec.data == 'LABEL'
 
 def test_2b():
     """Handle label not found
@@ -87,6 +87,29 @@ def test_3():
     x=[]
     for rec in fb:
         x += list(fb.readbuf(3, 'd'))
+    xref = (1., 2., 3.,  5., 6., 7.)
+    print x, xref
+    assert np.allclose(x, xref)
+
+def test_3b():
+    """Read from record object
+
+      integer, parameter :: n = 3
+      double precision x(n), y(n)
+      x = (/ 1.0D0, 2.0D0, 3.0D0 /)
+      y = (/ 5.0D0, 6.0D0, 7.0D0 /)
+      open(3, file='fort.3', status='new', form='unformatted')
+      write(1) x
+      write(1) y
+      close(1)
+      end
+    """
+    ffile = os.path.join(tdir, 'fort.3')
+    fb = FortranBinary(ffile)
+    # first record is int 3
+    x=[]
+    for rec in fb:
+        x += list(rec.read(3, 'd'))
     xref = (1., 2., 3.,  5., 6., 7.)
     print x, xref
     assert np.allclose(x, xref)

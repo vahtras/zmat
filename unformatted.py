@@ -38,7 +38,8 @@ class FortranBinary():
             tail = self.file.read(self.pad)
             assert head == tail
             self.loc = 0
-            return self.data
+            self.rec = Rec(self.data) 
+            return self.rec
         else:
             raise StopIteration
 
@@ -58,5 +59,21 @@ class FortranBinary():
         """Close file"""
         self.file.close()
 
+class Rec():
+    def __init__(self, data):
+        self.data = data
+        self.loc = 0
+        self.reclen = len(data)
+
+    def __contains__(self, obj):
+        return obj in self.data
+
+    def read(self, n, c):
+        """Read data from current record"""
+        start, stop = self.loc, self.loc+struct.calcsize(c*n)
+        vec = struct.unpack(c*n, self.data[start:stop])
+        self.loc = stop
+        return vec
+        
 if __name__ == "__main__":
     pass
