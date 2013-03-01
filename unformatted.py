@@ -26,9 +26,6 @@ class FortranBinary():
         return self
 
     def next(self):
-        return self.readrec()
-
-    def readrec(self):
         """Read a Fortran record"""
         head = self.file.read(self.pad)
         if head:
@@ -45,9 +42,7 @@ class FortranBinary():
 
     def readbuf(self, n, c):
         """Read data from current record"""
-        start, stop = self.loc, self.loc+struct.calcsize(c*n)
-        vec = struct.unpack(c*n, self.data[start:stop])
-        self.loc = stop
+        vec = self.rec.read(n, c)
         return vec
 
     def find(self, label):
