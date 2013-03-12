@@ -7,7 +7,7 @@ import struct, sys
 class FortranBinary():
     """Class for binary files compatible with Fortran Unformatted I/O"""
     pad = 4
-    def __init__(self, name, status=None):
+    def __init__(self, name, status=None, label=None):
         self.name = name
         if status == 'new':
             self.file = open(name,'wb')
@@ -15,12 +15,14 @@ class FortranBinary():
             try:
                 self.file = open(name, 'rwb', 10)
             except(IOError):
-                print "%s: file %s not found" % (__name__ + '.' + self.__class__.__name__, name)
+                print "\n%s: file %s not found\n" % (__name__ + '.' + self.__class__.__name__, name)
                 raise IOError
                 sys.exit(1)
         self.data = None
         self.loc = 0
         self.reclen = 0
+        if label is not None:
+            self.find(label)
 
     def __iter__(self):
         return self
