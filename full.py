@@ -413,11 +413,9 @@ class matrix(numpy.ndarray):
       from scipy.linalg import sqrtm
       return sqrtm(self.I).real.view(matrix)
 
-   def vec2diag(self):
-      n=self.shape[0]
-      new=matrix((n*n))
-      new[:n*n:n+1]=self[:]
-      return new.reshape((n,n))
+   @staticmethod
+   def diag(vec):
+      return numpy.diag(vec).view(matrix)
 
    def func(self,f):
       if False:
