@@ -1,109 +1,113 @@
-#Main role? Focus?
+"""Module for processing a molecule input file in ZMAT format"""
+
 import math
 from numpy import allclose
 from util import full
-debug = False
-deg2rad = math.pi/180
+DEBUG = False
+DEG2RAD = math.pi/180
+
 class Atom:
-   """Input line from ZMAT section defines an atom instance
-      E I R J A K D
-      E element name of current atom
-      R distance relative to atom number I
-      A angle relative to atoms I,J: J-I-E
-      D dihedral relative to atoms I,J,K: K-J-I-E
-        Data members:
-            label: E (string)
-            R (string)
-            A
-            D
-            refs: refer to previous atoms, e.g. [I], [I, J], [I, J, K]
-            charge: charge of element E (float)
-            coor: cartesian coordinates: are only set to zero here
-   """
-   angular = set()
-   atomlist = []
-   charge = ["X",
-        "H", "He",
-        "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-        "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
-   def __init__(self, line):
-      """Member parameters describe relation to other atoms
-      """
-      words=line.split()
-      lw=len(words)
-      #print "lw",lw
-      # H 3 r 2 A 1 D
-      self.R=None
-      self.A=None
-      self.D=None
-      self.r=None
-      self.a=None
-      self.d=None
-      self.refs=[]
-      if words: #what happens if empty, nothing
-         self.label=words[0]
-         self.charge=float(Atom.charge.index(self.label))
-         if lw > 2: 
-            self.R=words[2]
-            try:
-               # if valid float
-               self.r=float(self.R)  ######## WHY
-            except ValueError:
-               self.r = None
-         if lw > 4: 
-            self.A=words[4]
-            #
-            # Try convert if not parameter
-            #
-            try:
-               #
-               # This is an angle so convert to radians
-               #
-               self.a = float(self.A)*deg2rad
-               #
-            except ValueError:
-               # if conversion did not work it _should_ be a parameter
-               self.a = None
-               Atom.angular.update([self.A])
-         if lw > 6: 
-            self.D = words[6]
-            try:
-               self.d = float(self.D) * deg2rad
-            except ValueError:
-               # if conversion did not work it _should_ be a parameter
-               # optionally with a sign ... hmmmm
-               self.d = None
-               Atom.angular.update([self.D])
-         #self.refs=words[2:lw-1:2]
-         self.refs = [int(i) - 1 for i in words[1:lw:2]]
-         self.coor=full.matrix(3)
-         self.atomrefs = [Atom.atomlist[i] for i in self.refs]
-         Atom.atomlist.append(self)
-        #what happens for multiple inputs or if I run this twice?
-        
-   def __str__(self):
-      retstr="      %4s    1\n"%self.charge
-      #retstr = ""
-      retstr+="%-2s"%self.label
-      retstr+="%20.10f %20.10f %20.10f\n"%(self.coor[0],self.coor[1],self.coor[2])
-      if debug:
-         print self.label,self.charge,self.R,self.A,self.D,self.refs
-      return retstr
+    """Input line from ZMAT section defines an atom instance
+       E I R J A K D
+       E element name of current atom
+       R distance relative to atom number I
+       A angle relative to atoms I,J: J-I-E
+       D dihedral relative to atoms I,J,K: K-J-I-E
+         Data members:
+             label: E (string)
+             R (string)
+             A
+             D
+             refs: refer to previous atoms, e.g. [I], [I, J], [I, J, K]
+             charge: charge of element E (float)
+             coor: cartesian coordinates: are only set to zero here
+    """
+    angular = set()
+    atomlist = []
+    charge = ["X",
+         "H", "He",
+         "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+         "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
+
+    def __init__(self, line):
+        """Member parameters describe relation to other atoms
+        """
+        words = line.split()
+        lw = len(words)
+        #print "lw",lw
+        # H 3 r 2 A 1 D
+        self.R = None
+        self.A = None
+        self.D = None
+        self.r = None
+        self.a = None
+        self.d = None
+        self.refs = []
+        if words: #what happens if empty, nothing
+            self.label = words[0]
+            self.charge = float(Atom.charge.index(self.label))
+            if lw > 2: 
+                self.R = words[2]
+                try:
+                    # if valid float
+                    self.r = float(self.R)  ######## WHY
+                except ValueError:
+                    self.r = None
+            if lw > 4: 
+                self.A = words[4]
+                #
+                # Try convert if not parameter
+                #
+                try:
+                    #
+                    # This is an angle so convert to radians
+                    #
+                    self.a = float(self.A)*DEG2RAD
+                    #
+                except ValueError:
+                    # if conversion did not work it _should_ be a parameter
+                    self.a = None
+                    Atom.angular.update([self.A])
+            if lw > 6: 
+                self.D = words[6]
+                try:
+                    self.d = float(self.D) * DEG2RAD
+                except ValueError:
+                    # if conversion did not work it _should_ be a parameter
+                    # optionally with a sign ... hmmmm
+                    self.d = None
+                    Atom.angular.update([self.D])
+            #self.refs = words[2:lw-1:2]
+            self.refs = [int(i) - 1 for i in words[1:lw:2]]
+            self.coor = full.matrix(3)
+            self.atomrefs = [Atom.atomlist[i] for i in self.refs]
+            Atom.atomlist.append(self)
+            #what happens for multiple inputs or if I run this twice?
+          
+    def __str__(self):
+        """Return atom line in mol style"""
+        retstr = "      %4s    1\n" % self.charge
+        #retstr = ""
+        retstr += "%-2s" % self.label
+        retstr += "%20.10f %20.10f %20.10f\n" % (
+            self.coor[0], self.coor[1], self.coor[2]
+            )
+        if DEBUG:
+            print self.label, self.charge, self.R, self.A, self.D, self.refs
+        return retstr
 
 class Mol():
+    """Molecule class holing all zmat data"""
     def __init__(self, lines):
-        """An instance of class Mol is created for an input of a list of strings in Z-matrix format"""
-        self.atomtypes={}
+        """An instance of class Mol is created for an input of a list of strings
+        in Z-matrix format"""
+        self.atomtypes = {}
         #
         zstart = 0
-        vstart = None
-        cstart = None
         if 'Variables:' in lines:
             zend = lines.index('Variables:')
-            vstart = zend + 1
         elif 'Constants:' in lines:
             zend = lines.index('Constants:')
-            cstart = zend + 1
         else:
             zend = len(lines)
         
@@ -129,11 +133,11 @@ class Mol():
 
     def __str__(self):
         retstr = "\n".join(self.zmat) + "\n\n"
-        for (k,v) in zip(self.params.keys(), self.params.values()):
+        for (k, v) in zip(self.params.keys(), self.params.values()):
             if k in Atom.angular:
-                retstr += "%s = %f\n"%(k,v*180/math.pi)
+                retstr += "%s = %f\n" % (k, v*180/math.pi)
             else:
-                retstr += "%s = %f\n"%(k,v)
+                retstr += "%s = %f\n" % (k, v)
         #for a in self.atomlist: retstr += str(a)
         return retstr
 
@@ -147,7 +151,7 @@ class Mol():
             return 0
         elif len(self.atomlist) == 2:
             a, b = self.atomlist[:]
-            ra, rb = a.coor, b.coor
+            rb = b.coor
             
             assert b.refs[0] == 0
             #
@@ -157,7 +161,7 @@ class Mol():
             rb[0] = self.params.get(b.R, b.r)
         elif len(self.atomlist) == 3:
             a, b, c = self.atomlist
-            ra, rb, rc = a.coor, b.coor, c.coor
+            rb, rc = b.coor, c.coor
             #
             rb[0] = self.params.get(b.R, b.r)
             #
@@ -226,7 +230,7 @@ class Mol():
 #  rot      >>>>>>  A.rot(ABC-ABC0, n)  #rotate a around B
                     A[:] = B + (A-B).rot(ABC-ABC0, n)
                     # Dihedral rotation
-                    ABCD0 = A.dihedral(B,C,D)
+                    ABCD0 = A.dihedral(B, C, D)
                     #A.rot(ABCD - ABCD0, B-C)
                     A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
                 else:
@@ -254,7 +258,7 @@ class Mol():
                 # Current dihedral
                 #
 
-                    ABCD0 = A.dihedral(B,C,D)
+                    ABCD0 = A.dihedral(B, C, D)
                     print "ABCD0", ABCD0
                     A.rot(ABCD - ABCD0, B-C)
                 
