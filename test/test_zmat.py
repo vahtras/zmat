@@ -1,7 +1,7 @@
 import math 
 from numpy.testing import assert_allclose
 from util import full
-from zmat import Atom, Mol
+from ..zmat import Atom, Mol
 
 tmpdir = '/tmp'
 
@@ -296,7 +296,7 @@ R=0.925"""
     assert_allclose(H12, 0.925)
     assert_allclose(H23, 0.925)
 
-from sample_molecules import molinp
+from ..sample_molecules import molinp
 
 def assert_zmat_geometry(molecule, desired):
     print molecule
@@ -642,17 +642,17 @@ R=0.95
 A=105
 """
     href="""BASIS
-STO-3G
-
-
-Atomtypes=2
+<your basis set label here>
+Generated from yo.zmat by molconvert
+====================================
+Atomtypes=2 Units=Angtrom Nosymmetry
 Charge=1.0 Atoms=2
-H 0.95 0 0
-H -0.245878 0.91763 0
+H   0.950000   0.000000   0.000000
+H  -0.245878   0.917630   0.000000
 Charge=8.0 Atoms=1
-O 0 0 0
+O   0.000000   0.000000   0.000000
 """
-    from zmat2her import main
+    from ..molconvert import main
     z=open('yo.zmat', 'w'); z.write(zref); z.close()
     main('yo.zmat', 'yo.mol')
     h=open('yo.mol', 'r').read()

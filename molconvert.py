@@ -47,7 +47,7 @@ def main(*args, **kwargs):
         #Open output flie
         with open(bar, 'w') as outf:
             if to_ext  == '.xyz':
-                outf.write("%d\nGenerated from %s by %s\n" % (len(alist), foo, __file__))
+                outf.write("%d\nGenerated from %s by molconvert\n" % (len(alist), foo, ))
                 for atom in alist:
                     x, y, z = atom.coor[:]
                     outf.write("%s %10.6f %10.6f %10.6f\n"%(atom.label, x, y, z))
@@ -63,10 +63,10 @@ def main(*args, **kwargs):
             elif to_ext == '.mol':
                 outf.write("""BASIS
 <your basis set label here>
-Genereted from %s by %s
-=======================
-Atomtype=%d Units=Angtrom Nosymmetry
-""" % (foo, __file__, len(mol.atomtypes))
+Generated from %s by molconvert
+====================================
+Atomtypes=%d Units=Angtrom Nosymmetry
+""" % (foo, len(mol.atomtypes))
                     )
                 for atype in mol.atomtypes.keys():
                     atoms = mol.atomtypes[atype]
