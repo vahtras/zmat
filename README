@@ -1,0 +1,7 @@
+The purpose is to convert molecule specifications in zmat format to xyz or various
+program-specific formats. Currently these are
+
+mol: Dalton molecule input format
+pot: Dalton potential file format
+
+Installing:
