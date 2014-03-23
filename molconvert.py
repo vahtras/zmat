@@ -20,9 +20,17 @@ TOS = ['.xyz', '.mol', '.pot']
 ALPHA_ALKENE = {"C":0.878, "H": 0.135, "O": 0.465}
 
 
-def main(*args, **kwargs):
-    """Convert molecule file from_mol to to_mol"""
-    from_mol, to_mol = args
+def main(from_mol, to_mol, **kwargs):
+    """Convert molecule file from_mol to to_mol
+
+    from_mol -- filename of exisiting molecule 
+    to_mol -- filename of generated file in new format
+
+    The in- and out formats are extracted from extensions
+    Currently these are
+    in: zmat
+    out: xyz, pot, mol
+    """
     #
     # Determine type of from file by extension
     #
