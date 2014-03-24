@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Script to convert from zmat format to other formats
  
     Supported output formats:
