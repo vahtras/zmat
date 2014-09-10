@@ -1,6 +1,6 @@
 import math 
 from numpy.testing import assert_allclose
-from util import full
+from ..util import full
 from ..zmat import Atom, Mol
 
 tmpdir = '/tmp'
