@@ -1,3 +1,3 @@
 [submodule "util"]
 	path = util
-	url = git@bitbucket.org:ovahtras/util.git
+	url = git@github.com:vahtras/util.git
