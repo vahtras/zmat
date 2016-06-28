@@ -43,6 +43,7 @@ class Atom:
         self.a = None
         self.d = None
         self.refs = []
+        self.params= {}
         if words: #what happens if empty, nothing
             self.label = words[0]
             self.charge = float(Atom.charge.index(self.label))
@@ -53,6 +54,7 @@ class Atom:
                     self.r = float(self.R)  ######## WHY
                 except ValueError:
                     self.r = None
+                    self.params[self.R] = self.r
             if lw > 4: 
                 self.A = words[4]
                 #
@@ -96,8 +98,29 @@ class Atom:
             print self.label, self.charge, self.R, self.A, self.D, self.refs
         return retstr
 
+    def update_cartesian(self):
+        """This aims to generate cartesian coordinates from zmat values"""
+        #
+        # First special cases up to three atoms
+        #
+        if len(self.atomlist) == 1:
+            return 0
+        elif len(self.atomlist) == 2:
+            a, b = self.atomlist[:]
+            rb = b.coor
+            
+            assert b.refs[0] == 0
+            #
+            # Retrievs BA parametrized distance if defined 
+            # the constant value in the ZMAT input
+            #
+            rb[0] = self.params.get(b.R, b.r)
+        else:
+            raise Exception("yo")
+
 class Mol():
     """Molecule class holing all zmat data"""
+
     def __init__(self, lines):
         """An instance of class Mol is created for an input of a list of strings
         in Z-matrix format"""
@@ -110,6 +133,7 @@ class Mol():
             zend = lines.index('Constants:')
         else:
             zend = len(lines)
+
         
         self.zmat = lines[zstart:zend]
         self.atomlist = [Atom(line) for line in self.zmat]

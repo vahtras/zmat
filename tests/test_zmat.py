@@ -1,4 +1,5 @@
 import math 
+import unittest
 from numpy.testing import assert_allclose
 from util import full
 from ..zmat import Atom, Mol
@@ -6,35 +7,54 @@ from .sample_molecules import molinp
 
 tmpdir = '/tmp'
 
-def setup():
-    Atom.angular.clear()
+class AtomTest(unittest.TestCase):
 
-def test_first():
-    obj = Atom("H")
-    assert obj.label == "H"
-    assert obj.R is None
-    assert obj.A is None
-    assert obj.D is None
-    assert obj.refs == []
-    assert obj.charge == 1.0
-    assert str(obj) ==  """       1.0    1
+    def setUp(self):
+        Atom.atomlist = []
+
+    def tearDown(self):
+        pass
+
+    def test_first(self):
+        obj = Atom("H")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.A, obj.D, obj.refs, obj.charge),
+            ("H", None, None, None, [], 1.0)
+            )
+
+    def test_first_str(self):
+        obj = Atom("H")
+        self.assertEqual(
+            str(obj),
+            """\
+       1.0    1
 H         0.0000000000         0.0000000000         0.0000000000
 """
+            )
 
-def test_second():
-    obj = Atom("He 1 1.0")
-    assert obj.label == "He"
-    assert obj.R == "1.0"
-    assert obj.r == 1.0
-    assert obj.A is None
-    assert obj.a is None
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [0]
-    assert obj.charge == 2.0
-    assert str(obj) ==  """       2.0    1
-He        0.0000000000         0.0000000000         0.0000000000
+    def test_second(self):
+        Atom("H")
+        obj = Atom("He 1 1.0")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs, obj.charge),
+            ("He", "1.0", 1.0, None, None, None, None, [0], 2.0)
+            )
+
+    #@unittest.skip('hold')
+    def test_second_str(self):
+        Atom("H")
+        obj = Atom("He 1 1.0")
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+            """\
+       2.0    1
+He        1.0000000000         0.0000000000         0.0000000000
 """
+            )
+
+def setup():
+    Atom.angular.clear()
 
 def test_second_par():
     obj = Atom("He 1 R")
@@ -643,7 +663,7 @@ A=105
 """
     href="""BASIS
 <your basis set label here>
-Generated from yo.zmat by molconvert
+Generated from /tmp/yo.zmat by molconvert
 ====================================
 Atomtypes=2 Units=Angtrom Nosymmetry
 Charge=1.0 Atoms=2
@@ -653,11 +673,11 @@ Charge=8.0 Atoms=1
 O   0.000000   0.000000   0.000000
 """
     from ..molconvert import main
-    z=open('yo.zmat', 'w'); z.write(zref); z.close()
-    main('yo.zmat', 'yo.mol')
-    h=open('yo.mol', 'r').read()
+    z=open('/tmp/yo.zmat', 'w'); z.write(zref); z.close()
+    main('/tmp/yo.zmat', '/tmp/yo.mol')
+    h=open('/tmp/yo.mol', 'r').read()
     assert href == h
 
 
 if __name__ == "__main__":
-    test_TS07()
+    unittest.main()
