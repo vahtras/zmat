@@ -40,7 +40,6 @@ H         0.0000000000         0.0000000000         0.0000000000
             ("He", "1.0", 1.0, None, None, None, None, [0], 2.0)
             )
 
-    #@unittest.skip('hold')
     def test_second_str(self):
         Atom("H")
         obj = Atom("He 1 1.0")
@@ -53,88 +52,113 @@ He        1.0000000000         0.0000000000         0.0000000000
 """
             )
 
+
+    def test_second_par(self):
+        Atom("H")
+        obj = Atom("He 1 R")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
+                obj.charge),
+            ("He", "R", None, None, None, None, None, [0], 2.0)
+            )
+
+    def test_second_par_str(self):
+        Atom("H")
+        obj = Atom("He 1 R")
+        obj.params["R"] = 1.0
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+            """\
+       2.0    1
+He        1.0000000000         0.0000000000         0.0000000000
+"""
+            )
+
+    def test_third(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 1.0 1 90")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
+                obj.charge),
+            ("Li", "1.0", 1.0, "90", math.pi/2, None, None, [1, 0], 3.0)
+            )
+
+    def test_third_str(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 1.0 1 90")
+        obj.params["R"] = 1.0
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+        """       3.0    1
+Li        1.0000000000         1.0000000000         0.0000000000
+"""
+            )
+
+    def test_third_par_R(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 R 1 90")
+        assert obj.label == "Li"
+        assert obj.R == "R"
+        assert obj.r == None
+        assert obj.A == "90"
+        assert_allclose(obj.a, math.pi/2)
+        assert obj.D is None
+        assert obj.d is None
+        assert obj.refs == [1, 0]
+        assert obj.charge == 3.0
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
+                obj.charge),
+            ("Li", "R", None, "90", math.pi/2, None, None, [1, 0], 3.0)
+            )
+
+    def test_third_par_R(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 1.0 1 90")
+        obj.params["R"] = 1.0
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+        """       3.0    1
+Li        1.0000000000         1.0000000000         0.0000000000
+"""
+            )
+
+    def test_third_par_A(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 1.0 1 A")
+        obj.params["R"] = 1.0
+        obj.params["A"] = math.pi/2
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+        """       3.0    1
+Li        1.0000000000         1.0000000000         0.0000000000
+"""
+            )
+
+    def test_third_par_RA(self):
+        Atom("H")
+        Atom("He 1 R")
+        obj = Atom("Li 2 R 1 A")
+        obj.params = {"R": 1.0, "A": math.pi/2}
+        obj.update_cartesian()
+        self.assertEqual(
+            str(obj),
+        """       3.0    1
+Li        1.0000000000         1.0000000000         0.0000000000
+"""
+            )
+
 def setup():
     Atom.angular.clear()
-
-def test_second_par():
-    obj = Atom("He 1 R")
-    assert obj.label == "He"
-    assert obj.R == "R"
-    assert obj.r == None
-    assert obj.A is None
-    assert obj.a is None
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [0]
-    assert obj.charge == 2.0
-    assert str(obj) ==  """       2.0    1
-He        0.0000000000         0.0000000000         0.0000000000
-"""
-
-def test_third():
-    obj = Atom("Li 2 1.0 1 90")
-    assert obj.label == "Li"
-    assert obj.R == "1.0"
-    assert obj.r == 1.0
-    assert obj.A == "90"
-    assert_allclose(obj.a, math.pi/2)
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [1, 0]
-    assert obj.charge == 3.0
-    assert str(obj) ==  """       3.0    1
-Li        0.0000000000         0.0000000000         0.0000000000
-"""
-
-def test_third_par_R():
-    obj = Atom("Li 2 R 1 90")
-    assert obj.label == "Li"
-    assert obj.R == "R"
-    assert obj.r == None
-    assert obj.A == "90"
-    assert_allclose(obj.a, math.pi/2)
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [1, 0]
-    assert obj.charge == 3.0
-    assert str(obj) ==  """       3.0    1
-Li        0.0000000000         0.0000000000         0.0000000000
-"""
-
-def test_third_par_A():
-    obj = Atom("Li 2 1.0 1 A")
-    assert obj.label == "Li"
-    assert obj.R == "1.0"
-    assert obj.r == 1.0
-    assert obj.A == "A"
-    assert obj.a == None
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [1, 0]
-    assert obj.charge == 3.0
-    assert str(obj) ==  """       3.0    1
-Li        0.0000000000         0.0000000000         0.0000000000
-"""
-    #assert "A" in Atom.angular
-    assert Atom.angular == set(['A'])
-
-def test_third_par_RA():
-    obj = Atom("Li 2 R 1 A")
-    assert obj.label == "Li"
-    assert obj.R == "R"
-    assert obj.r == None
-    assert obj.A == "A"
-    assert obj.a == None
-    assert obj.D is None
-    assert obj.d is None
-    assert obj.refs == [1, 0]
-    assert obj.charge == 3.0
-    assert str(obj) ==  """       3.0    1
-Li        0.0000000000         0.0000000000         0.0000000000
-"""
-    assert "A" in Atom.angular
-    print Atom.angular
-    assert Atom.angular == set(['A'])
 
 def test_general():
     obj = Atom("B 3 1.0 2 90 1 180")

@@ -115,6 +115,30 @@ class Atom:
             # the constant value in the ZMAT input
             #
             rb[0] = self.params.get(b.R, b.r)
+        elif len(self.atomlist) == 3:
+            a, b, c = self.atomlist
+            rb, rc = b.coor, c.coor
+            #
+            rb[0] = self.params.get(b.R, b.r)
+            #
+            if c.refs[0] == 0: #want: is a
+            #
+            # c is bonded to a
+            #
+                Rca = self.params.get(c.R, c.r)
+                cab = self.params.get(c.A, c.a)
+                rc[0] = Rca*math.cos(cab)
+                rc[1] = Rca*math.sin(cab)
+            elif c.refs[0] == 1:
+            #
+            # c is bonded to b
+            #
+                Rcb = self.params.get(c.R, c.r)
+                cba = self.params.get(c.A, c.a)
+                rc[0] = rb[0] - Rcb*math.cos(cba)
+                rc[1] = Rcb*math.sin(cba)
+            else:
+                raise SystemExit(1)
         else:
             raise Exception("yo")
 
