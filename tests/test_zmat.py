@@ -1,6 +1,6 @@
 import math 
 from numpy.testing import assert_allclose
-from ..util import full
+from util import full
 from ..zmat import Atom, Mol
 
 tmpdir = '/tmp'
@@ -656,7 +656,6 @@ O   0.000000   0.000000   0.000000
     z=open('yo.zmat', 'w'); z.write(zref); z.close()
     main('yo.zmat', 'yo.mol')
     h=open('yo.mol', 'r').read()
-    print href, h
     assert href == h
 
 

@@ -11,6 +11,9 @@ import argparse
 import os
 import zmat
 
+FORMAT = "%10.6f"
+MOL_FORMAT = " ".join(["%s", FORMAT, FORMAT, FORMAT]) + "\n"
+
 class UnsupportedMoltype(Exception): 
     """Basic exception for unregognized mol types"""
     pass
@@ -93,7 +96,7 @@ Atomtypes=%d Units=Angtrom Nosymmetry
                     outf.write("Charge=%.1f Atoms=%d\n"%(charge, len(atoms)))
                     for atom in atoms:
                         x, y, z = atom.coor[:]
-                        outf.write("%s %10.6f %10.6f %10.6f\n"%(atype, x, y, z))
+                        outf.write(MOL_FORMAT % (atype, x, y, z))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
