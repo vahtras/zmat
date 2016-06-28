@@ -2,6 +2,7 @@ import math
 from numpy.testing import assert_allclose
 from util import full
 from ..zmat import Atom, Mol
+from .sample_molecules import molinp
 
 tmpdir = '/tmp'
 
@@ -296,7 +297,6 @@ R=0.925"""
     assert_allclose(H12, 0.925)
     assert_allclose(H23, 0.925)
 
-from ..sample_molecules import molinp
 
 def assert_zmat_geometry(molecule, desired):
     print molecule
