@@ -23,68 +23,69 @@ class Atom:
              coor: cartesian coordinates: are only set to zero here
     """
     angular = set()
+    params = {None: None}
     atomlist = []
     charge = ["X",
          "H", "He",
          "Li", "Be", "B", "C", "N", "O", "F", "Ne",
          "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
 
+
     def __init__(self, line):
         """Member parameters describe relation to other atoms
         """
         words = line.split()
         lw = len(words)
-        #print "lw",lw
-        # H 3 r 2 A 1 D
+       
         self.R = None
         self.A = None
         self.D = None
-        self.r = None
-        self.a = None
-        self.d = None
+
         self.refs = []
-        self.params= {}
+
         if words: #what happens if empty, nothing
             self.label = words[0]
             self.charge = float(Atom.charge.index(self.label))
+
             if lw > 2: 
                 self.R = words[2]
                 try:
-                    # if valid float
-                    self.r = float(self.R)  ######## WHY
+                    Atom.params[self.R] = float(self.R)
                 except ValueError:
-                    self.r = None
-                    self.params[self.R] = self.r
+                    Atom.params[self.R] = None
+                
             if lw > 4: 
                 self.A = words[4]
-                #
-                # Try convert if not parameter
-                #
                 try:
-                    #
-                    # This is an angle so convert to radians
-                    #
-                    self.a = float(self.A)*DEG2RAD
-                    #
+                    Atom.params[self.A] = float(self.A)*DEG2RAD
                 except ValueError:
-                    # if conversion did not work it _should_ be a parameter
-                    self.a = None
+                    Atom.params[self.A] = None
                     Atom.angular.update([self.A])
+
             if lw > 6: 
                 self.D = words[6]
                 try:
-                    self.d = float(self.D) * DEG2RAD
+                    Atom.params[self.D] = float(self.D)*DEG2RAD
                 except ValueError:
-                    # if conversion did not work it _should_ be a parameter
-                    # optionally with a sign ... hmmmm
-                    self.d = None
+                    Atom.params[self.D] = None
                     Atom.angular.update([self.D])
-            #self.refs = words[2:lw-1:2]
+
             self.refs = [int(i) - 1 for i in words[1:lw:2]]
             self.coor = full.matrix(3)
             self.atomrefs = [Atom.atomlist[i] for i in self.refs]
             Atom.atomlist.append(self)
-            #what happens for multiple inputs or if I run this twice?
+
+    @property
+    def r(self):
+        return Atom.params[self.R]
+
+    @property
+    def a(self):
+        return Atom.params[self.A]
+
+    @property
+    def d(self):
+        return Atom.params[self.D]
           
     def __str__(self):
         """Return atom line in mol style"""
@@ -139,8 +140,84 @@ class Atom:
                 rc[1] = Rcb*math.sin(cba)
             else:
                 raise SystemExit(1)
-        else:
-            raise Exception("yo")
+        else: 
+            #
+            # General case now.
+            #
+            # First three
+            #
+            a, b, c = self.atomlist[:3]
+            b.coor[0] = self.params.get(b.R, b.r)
+            if c.refs[0] == 0:
+                CA = self.params.get(c.R, c.r)
+                CAB = self.params.get(c.A, c.a)
+                c.coor[0] = CA*math.cos(CAB)
+                c.coor[1] = CA*math.sin(CAB)
+            else:
+                CB = self.params.get(c.R, c.r)
+                CBA = self.params.get(c.A, c.a)
+                c.coor[0] = b.coor[0] - CB*math.cos(CBA)
+                c.coor[1] = CB*math.sin(CBA)
+            for a in self.atomlist[3:]:
+                #b, c, d = [self.atomlist[i] for i in a.refs] BUG
+                b = self.atomlist[a.refs[0]]
+                c = self.atomlist[a.refs[1]]
+                d = self.atomlist[a.refs[2]]
+                A, B, C, D = a.coor, b.coor, c.coor, d.coor
+                AB = self.params.get(a.R, a.r)
+                ABC = self.params.get(a.A, a.a)
+                ABCD = self.params.get(a.D, a.d)
+                if ABCD is None:
+                # one known case where this fails, negated paramter
+                    if a.D[0] == "-":
+                        ABCD = -self.params.get(a.D[1:], a.d)
+                #print "AB", AB
+                #print "ABC", ABC
+                #print "ABCD", ABCD
+                #
+                # Translate A
+                #
+                # Initial setup (from origin)
+                if allclose(A,  [0, 0, 0]):
+                    # Translate along CB
+                    A[:] = B + (AB/(B-C).norm2()) * (B-C)
+                    # Rotate in BCD plane
+                    n = ((D-C).cross(B-C))
+                    ABC0 = A.angle3(B, C)
+#  rot      >>>>>>  A.rot(ABC-ABC0, n)  #rotate a around B
+                    A[:] = B + (A-B).rot(ABC-ABC0, n)
+                    # Dihedral rotation
+                    ABCD0 = A.dihedral(B, C, D)
+                    #A.rot(ABCD - ABCD0, B-C)
+                    A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
+                else:
+                # Update from preious origin)
+                    A[:] = B + AB*(A - B)/(A - B).norm2()
+                #
+                # Rotate A-B in the ABC plane:
+                #
+                # Current angle
+                #
+                    ABC0 = A.angle3(B, C)
+                #
+                # Normal #If parallel, after initial x translation
+                          #more cases?
+                #
+                    eps = 1e-7
+                    if abs(ABC0) < eps:
+                        # if AB andj
+                        N = full.init([0., 1., 0.])
+                    else:
+                        N = (A-B).cross(C-B)
+
+                    A.rot(ABC-ABC0, N, B)
+                #
+                # Current dihedral
+                #
+
+                    ABCD0 = A.dihedral(B, C, D)
+                    print "ABCD0", ABCD0
+                    A.rot(ABCD - ABCD0, B-C)
 
 class Mol():
     """Molecule class holing all zmat data"""

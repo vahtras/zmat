@@ -22,15 +22,9 @@ class AtomTest(unittest.TestCase):
             ("H", None, None, None, [], 1.0)
             )
 
-    def test_first_str(self):
+    def test_first_coor(self):
         obj = Atom("H")
-        self.assertEqual(
-            str(obj),
-            """\
-       1.0    1
-H         0.0000000000         0.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (0, 0, 0))
 
     def test_second(self):
         Atom("H")
@@ -40,40 +34,36 @@ H         0.0000000000         0.0000000000         0.0000000000
             ("He", "1.0", 1.0, None, None, None, None, [0], 2.0)
             )
 
-    def test_second_str(self):
+    def test_second_coor(self):
         Atom("H")
         obj = Atom("He 1 1.0")
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-            """\
-       2.0    1
-He        1.0000000000         0.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (1, 0, 0))
 
+    def test_second_par_undef(self):
+        Atom("H")
+        obj = Atom("He 1 R")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs, obj.charge),
+            ("He", "R", None, None, None, None, None, [0], 2.0)
+            )
 
     def test_second_par(self):
         Atom("H")
         obj = Atom("He 1 R")
+        Atom.params.update({'R': 1.0})
         self.assertTupleEqual(
             (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
                 obj.charge),
-            ("He", "R", None, None, None, None, None, [0], 2.0)
+            ("He", "R", 1.0, None, None, None, None, [0], 2.0)
             )
 
-    def test_second_par_str(self):
+    def test_second_par_cor(self):
         Atom("H")
         obj = Atom("He 1 R")
-        obj.params["R"] = 1.0
+        Atom.params.update({'R': 1.0})
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-            """\
-       2.0    1
-He        1.0000000000         0.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (1, 0, 0))
 
     def test_third(self):
         Atom("H")
@@ -85,32 +75,18 @@ He        1.0000000000         0.0000000000         0.0000000000
             ("Li", "1.0", 1.0, "90", math.pi/2, None, None, [1, 0], 3.0)
             )
 
-    def test_third_str(self):
+    def test_third_coor(self):
         Atom("H")
         Atom("He 1 R")
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-        """       3.0    1
-Li        1.0000000000         1.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_R(self):
         Atom("H")
         Atom("He 1 R")
         obj = Atom("Li 2 R 1 90")
-        assert obj.label == "Li"
-        assert obj.R == "R"
-        assert obj.r == None
-        assert obj.A == "90"
-        assert_allclose(obj.a, math.pi/2)
-        assert obj.D is None
-        assert obj.d is None
-        assert obj.refs == [1, 0]
-        assert obj.charge == 3.0
         self.assertTupleEqual(
             (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
                 obj.charge),
@@ -123,12 +99,7 @@ Li        1.0000000000         1.0000000000         0.0000000000
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-        """       3.0    1
-Li        1.0000000000         1.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_A(self):
         Atom("H")
@@ -137,43 +108,49 @@ Li        1.0000000000         1.0000000000         0.0000000000
         obj.params["R"] = 1.0
         obj.params["A"] = math.pi/2
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-        """       3.0    1
-Li        1.0000000000         1.0000000000         0.0000000000
-"""
-            )
+        assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_RA(self):
         Atom("H")
         Atom("He 1 R")
         obj = Atom("Li 2 R 1 A")
-        obj.params = {"R": 1.0, "A": math.pi/2}
+        obj.params.update({"R": 1.0, "A": math.pi/2})
         obj.update_cartesian()
-        self.assertEqual(
-            str(obj),
-        """       3.0    1
-Li        1.0000000000         1.0000000000         0.0000000000
-"""
+        assert_allclose(obj.coor, (1, 1, 0))
+
+    def test_general(self):
+        Atom("H")
+        Atom("He 1 1.0")
+        Atom("Li 2 1.0 1 90")
+        obj = Atom("B 3 1.0 2 90 1 180")
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
+                obj.charge),
+            ("B", "1.0", 1.0, "90", math.pi/2, "180", math.pi, [2, 1, 0], 5.0)
+            )
+
+    def test_general_coor(self):
+        Atom("H")
+        Atom("He 1 1.0")
+        Atom("Li 2 1.0 1 90")
+        obj = Atom("B 3 1.0 2 90 1 180")
+        obj.update_cartesian()
+        assert_allclose(obj.coor, (2, 1, 0), atol=1e-7)
+
+    def test_general_par(self):
+        Atom("H")
+        Atom("He 1 R")
+        Atom("Li 2 R 1 A")
+        obj = Atom("B 3 R 2 A 1 D")
+        obj.params.update({'R': 1.0, 'A': math.pi/2, 'D': math.pi})
+        self.assertTupleEqual(
+            (obj.label, obj.R, obj.r, obj.A, obj.a, obj.D, obj.d, obj.refs,
+                obj.charge),
+            ("B", "R", 1.0, "A", math.pi/2, "D", math.pi, [2, 1, 0], 5.0)
             )
 
 def setup():
     Atom.angular.clear()
-
-def test_general():
-    obj = Atom("B 3 1.0 2 90 1 180")
-    assert obj.label == "B"
-    assert obj.R == "1.0"
-    assert obj.r == 1.0
-    assert obj.A == "90"
-    assert_allclose(obj.a, math.pi/2)
-    assert obj.D == "180"
-    assert_allclose(obj.d,  math.pi)
-    assert obj.refs == [2, 1, 0]
-    assert obj.charge == 5.0
-    assert str(obj) ==  """       5.0    1
-B         0.0000000000         0.0000000000         0.0000000000
-"""
 
 def test_general_par_D():
     Atom.angular.clear()
