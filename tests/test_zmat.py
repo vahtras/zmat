@@ -12,7 +12,6 @@ def zinit(case):
     # remove empty lines
     while '' in lines:
         lines.remove('')
-    print "zinit:lines",lines
     return lines
 
 

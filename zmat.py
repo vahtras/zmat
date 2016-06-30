@@ -101,123 +101,7 @@ class Atom:
 
     def update_cartesian(self):
         """This aims to generate cartesian coordinates from zmat values"""
-        #
-        # First special cases up to three atoms
-        #
-        if len(self.atomlist) == 1:
-            return 0
-        elif len(self.atomlist) == 2:
-            a, b = self.atomlist[:]
-            rb = b.coor
-            
-            assert b.refs[0] == 0
-            #
-            # Retrievs BA parametrized distance if defined 
-            # the constant value in the ZMAT input
-            #
-            rb[0] = self.params.get(b.R, b.r)
-        elif len(self.atomlist) == 3:
-            a, b, c = self.atomlist
-            rb, rc = b.coor, c.coor
-            #
-            rb[0] = self.params.get(b.R, b.r)
-            #
-            if c.refs[0] == 0: #want: is a
-            #
-            # c is bonded to a
-            #
-                Rca = self.params.get(c.R, c.r)
-                cab = self.params.get(c.A, c.a)
-                rc[0] = Rca*math.cos(cab)
-                rc[1] = Rca*math.sin(cab)
-            elif c.refs[0] == 1:
-            #
-            # c is bonded to b
-            #
-                Rcb = self.params.get(c.R, c.r)
-                cba = self.params.get(c.A, c.a)
-                rc[0] = rb[0] - Rcb*math.cos(cba)
-                rc[1] = Rcb*math.sin(cba)
-            else:
-                raise SystemExit(1)
-        else: 
-            #
-            # General case now.
-            #
-            # First three
-            #
-            a, b, c = self.atomlist[:3]
-            b.coor[0] = self.params.get(b.R, b.r)
-            if c.refs[0] == 0:
-                CA = self.params.get(c.R, c.r)
-                CAB = self.params.get(c.A, c.a)
-                c.coor[0] = CA*math.cos(CAB)
-                c.coor[1] = CA*math.sin(CAB)
-            else:
-                CB = self.params.get(c.R, c.r)
-                CBA = self.params.get(c.A, c.a)
-                c.coor[0] = b.coor[0] - CB*math.cos(CBA)
-                c.coor[1] = CB*math.sin(CBA)
-            for a in self.atomlist[3:]:
-                #b, c, d = [self.atomlist[i] for i in a.refs] BUG
-                b = self.atomlist[a.refs[0]]
-                c = self.atomlist[a.refs[1]]
-                d = self.atomlist[a.refs[2]]
-                A, B, C, D = a.coor, b.coor, c.coor, d.coor
-                AB = self.params.get(a.R, a.r)
-                ABC = self.params.get(a.A, a.a)
-                ABCD = self.params.get(a.D, a.d)
-                if ABCD is None:
-                # one known case where this fails, negated paramter
-                    if a.D[0] == "-":
-                        ABCD = -self.params.get(a.D[1:], a.d)
-                #print "AB", AB
-                #print "ABC", ABC
-                #print "ABCD", ABCD
-                #
-                # Translate A
-                #
-                # Initial setup (from origin)
-                if allclose(A,  [0, 0, 0]):
-                    # Translate along CB
-                    A[:] = B + (AB/(B-C).norm2()) * (B-C)
-                    # Rotate in BCD plane
-                    n = ((D-C).cross(B-C))
-                    ABC0 = A.angle3(B, C)
-#  rot      >>>>>>  A.rot(ABC-ABC0, n)  #rotate a around B
-                    A[:] = B + (A-B).rot(ABC-ABC0, n)
-                    # Dihedral rotation
-                    ABCD0 = A.dihedral(B, C, D)
-                    #A.rot(ABCD - ABCD0, B-C)
-                    A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
-                else:
-                # Update from preious origin)
-                    A[:] = B + AB*(A - B)/(A - B).norm2()
-                #
-                # Rotate A-B in the ABC plane:
-                #
-                # Current angle
-                #
-                    ABC0 = A.angle3(B, C)
-                #
-                # Normal #If parallel, after initial x translation
-                          #more cases?
-                #
-                    eps = 1e-7
-                    if abs(ABC0) < eps:
-                        # if AB andj
-                        N = full.init([0., 1., 0.])
-                    else:
-                        N = (A-B).cross(C-B)
-
-                    A.rot(ABC-ABC0, N, B)
-                #
-                # Current dihedral
-                #
-
-                    ABCD0 = A.dihedral(B, C, D)
-                    print "ABCD0", ABCD0
-                    A.rot(ABCD - ABCD0, B-C)
+        update_cartesian(self.atomlist, self.params)
 
 class Mol():
     """Molecule class holing all zmat data"""
@@ -272,120 +156,129 @@ class Mol():
         #
         # First special cases up to three atoms
         #
-        if len(self.atomlist) == 1:
-            return 0
-        elif len(self.atomlist) == 2:
-            a, b = self.atomlist[:]
-            rb = b.coor
-            
-            assert b.refs[0] == 0
+        update_cartesian(self.atomlist, self.params)
+        return
+
+
+def update_cartesian(atomlist, params):
+    """This aims to generate cartesian coordinates from zmat values"""
+    #
+    # First special cases up to three atoms
+    #
+    if len(atomlist) == 1:
+        return 0
+    elif len(atomlist) == 2:
+        a, b = atomlist[:]
+        rb = b.coor
+        
+        assert b.refs[0] == 0
+        #
+        # Retrievs BA parametrized distance if defined 
+        # the constant value in the ZMAT input
+        #
+        rb[0] = params.get(b.R, b.r)
+    elif len(atomlist) == 3:
+        a, b, c = atomlist
+        rb, rc = b.coor, c.coor
+        #
+        rb[0] = params.get(b.R, b.r)
+        #
+        if c.refs[0] == 0: #want: is a
+        #
+        # c is bonded to a
+        #
+            Rca = params.get(c.R, c.r)
+            cab = params.get(c.A, c.a)
+            rc[0] = Rca*math.cos(cab)
+            rc[1] = Rca*math.sin(cab)
+        elif c.refs[0] == 1:
+        #
+        # c is bonded to b
+        #
+            Rcb = params.get(c.R, c.r)
+            cba = params.get(c.A, c.a)
+            rc[0] = rb[0] - Rcb*math.cos(cba)
+            rc[1] = Rcb*math.sin(cba)
+        else:
+            raise SystemExit(1)
+    else: 
+        #
+        # General case now.
+        #
+        # First three
+        #
+        a, b, c = atomlist[:3]
+        b.coor[0] = params.get(b.R, b.r)
+        if c.refs[0] == 0:
+            CA = params.get(c.R, c.r)
+            CAB = params.get(c.A, c.a)
+            c.coor[0] = CA*math.cos(CAB)
+            c.coor[1] = CA*math.sin(CAB)
+        else:
+            CB = params.get(c.R, c.r)
+            CBA = params.get(c.A, c.a)
+            c.coor[0] = b.coor[0] - CB*math.cos(CBA)
+            c.coor[1] = CB*math.sin(CBA)
+        for a in atomlist[3:]:
+            #b, c, d = [atomlist[i] for i in a.refs] BUG
+            b = atomlist[a.refs[0]]
+            c = atomlist[a.refs[1]]
+            d = atomlist[a.refs[2]]
+            A, B, C, D = a.coor, b.coor, c.coor, d.coor
+            AB = params.get(a.R, a.r)
+            ABC = params.get(a.A, a.a)
+            ABCD = params.get(a.D, a.d)
+            if ABCD is None:
+            # one known case where this fails, negated paramter
+                if a.D[0] == "-":
+                    ABCD = -params.get(a.D[1:], a.d)
+            #print "AB", AB
+            #print "ABC", ABC
+            #print "ABCD", ABCD
             #
-            # Retrievs BA parametrized distance if defined 
-            # the constant value in the ZMAT input
+            # Translate A
             #
-            rb[0] = self.params.get(b.R, b.r)
-        elif len(self.atomlist) == 3:
-            a, b, c = self.atomlist
-            rb, rc = b.coor, c.coor
-            #
-            rb[0] = self.params.get(b.R, b.r)
-            #
-            if c.refs[0] == 0: #want: is a
-            #
-            # c is bonded to a
-            #
-                Rca = self.params.get(c.R, c.r)
-                cab = self.params.get(c.A, c.a)
-                rc[0] = Rca*math.cos(cab)
-                rc[1] = Rca*math.sin(cab)
-            elif c.refs[0] == 1:
-            #
-            # c is bonded to b
-            #
-                Rcb = self.params.get(c.R, c.r)
-                cba = self.params.get(c.A, c.a)
-                rc[0] = rb[0] - Rcb*math.cos(cba)
-                rc[1] = Rcb*math.sin(cba)
-            else:
-                raise SystemExit(1)
-        else: 
-            #
-            # General case now.
-            #
-            # First three
-            #
-            a, b, c = self.atomlist[:3]
-            b.coor[0] = self.params.get(b.R, b.r)
-            if c.refs[0] == 0:
-                CA = self.params.get(c.R, c.r)
-                CAB = self.params.get(c.A, c.a)
-                c.coor[0] = CA*math.cos(CAB)
-                c.coor[1] = CA*math.sin(CAB)
-            else:
-                CB = self.params.get(c.R, c.r)
-                CBA = self.params.get(c.A, c.a)
-                c.coor[0] = b.coor[0] - CB*math.cos(CBA)
-                c.coor[1] = CB*math.sin(CBA)
-            for a in self.atomlist[3:]:
-                #b, c, d = [self.atomlist[i] for i in a.refs] BUG
-                b = self.atomlist[a.refs[0]]
-                c = self.atomlist[a.refs[1]]
-                d = self.atomlist[a.refs[2]]
-                A, B, C, D = a.coor, b.coor, c.coor, d.coor
-                AB = self.params.get(a.R, a.r)
-                ABC = self.params.get(a.A, a.a)
-                ABCD = self.params.get(a.D, a.d)
-                if ABCD is None:
-                # one known case where this fails, negated paramter
-                    if a.D[0] == "-":
-                        ABCD = -self.params.get(a.D[1:], a.d)
-                #print "AB", AB
-                #print "ABC", ABC
-                #print "ABCD", ABCD
-                #
-                # Translate A
-                #
-                # Initial setup (from origin)
-                if allclose(A,  [0, 0, 0]):
-                    # Translate along CB
-                    A[:] = B + (AB/(B-C).norm2()) * (B-C)
-                    # Rotate in BCD plane
-                    n = ((D-C).cross(B-C))
-                    ABC0 = A.angle3(B, C)
+            # Initial setup (from origin)
+            if allclose(A,  [0, 0, 0]):
+                # Translate along CB
+                A[:] = B + (AB/(B-C).norm2()) * (B-C)
+                # Rotate in BCD plane
+                n = ((D-C).cross(B-C))
+                ABC0 = A.angle3(B, C)
 #  rot      >>>>>>  A.rot(ABC-ABC0, n)  #rotate a around B
-                    A[:] = B + (A-B).rot(ABC-ABC0, n)
-                    # Dihedral rotation
-                    ABCD0 = A.dihedral(B, C, D)
-                    #A.rot(ABCD - ABCD0, B-C)
-                    A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
+                A[:] = B + (A-B).rot(ABC-ABC0, n)
+                # Dihedral rotation
+                ABCD0 = A.dihedral(B, C, D)
+                #A.rot(ABCD - ABCD0, B-C)
+                A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
+            else:
+            # Update from preious origin)
+                A[:] = B + AB*(A - B)/(A - B).norm2()
+            #
+            # Rotate A-B in the ABC plane:
+            #
+            # Current angle
+            #
+                ABC0 = A.angle3(B, C)
+            #
+            # Normal #If parallel, after initial x translation
+                      #more cases?
+            #
+                eps = 1e-7
+                if abs(ABC0) < eps:
+                    # if AB andj
+                    N = full.init([0., 1., 0.])
                 else:
-                # Update from preious origin)
-                    A[:] = B + AB*(A - B)/(A - B).norm2()
-                #
-                # Rotate A-B in the ABC plane:
-                #
-                # Current angle
-                #
-                    ABC0 = A.angle3(B, C)
-                #
-                # Normal #If parallel, after initial x translation
-                          #more cases?
-                #
-                    eps = 1e-7
-                    if abs(ABC0) < eps:
-                        # if AB andj
-                        N = full.init([0., 1., 0.])
-                    else:
-                        N = (A-B).cross(C-B)
+                    N = (A-B).cross(C-B)
 
-                    A.rot(ABC-ABC0, N, B)
-                #
-                # Current dihedral
-                #
+                A.rot(ABC-ABC0, N, B)
+            #
+            # Current dihedral
+            #
 
-                    ABCD0 = A.dihedral(B, C, D)
-                    print "ABCD0", ABCD0
-                    A.rot(ABCD - ABCD0, B-C)
-                
+                ABCD0 = A.dihedral(B, C, D)
+                print "ABCD0", ABCD0
+                A.rot(ABCD - ABCD0, B-C)
+            
 
 
