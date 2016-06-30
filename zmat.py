@@ -92,6 +92,26 @@ class Atom:
         """This aims to generate cartesian coordinates from zmat values"""
         update_cartesian(self.atomlist, self.params)
 
+def first_index(tags, lines):
+    indices = [lines.index(tag) if tag in lines else len(lines) for tag in tags]
+    return min(indices)
+
+def read_params(tag, lines):
+    param_values = {}
+    if tag in lines:
+        start = lines.index(tag) + 1
+        for i in range(start, len(lines)):
+            try:
+                P, V = lines[i].split('=')
+            except ValueError:
+                break
+            v = float(V)
+            if P.strip() in Atom.angular:
+                v *= math.pi/180
+            param_values.update({P.strip(): v})
+    return param_values
+
+
 class Mol():
     """Molecule class holing all zmat data"""
 
@@ -101,12 +121,7 @@ class Mol():
         self.atomtypes = {}
         #
         zstart = 0
-        if 'Variables:' in lines:
-            zend = lines.index('Variables:')
-        elif 'Constants:' in lines:
-            zend = lines.index('Constants:')
-        else:
-            zend = len(lines)
+        zend = first_index(('Variables:', 'Constants:'), lines)
 
         
         self.zmat = lines[zstart:zend]
@@ -120,14 +135,8 @@ class Mol():
         # Extract Parameter section
         #
         self.params = {}
-        pstart = zend + 1
-        for pline in lines[pstart:]:
-            P, V = pline.split('=')
-            P = P.strip()
-            if P in Atom.angular:
-                self.params[P] = float(V)*math.pi/180
-            else:
-                self.params[P] = float(V)
+        self.params.update(read_params("Variables:", lines))
+        self.params.update(read_params("Constants:", lines))
 
     def update_cartesian(self):
         """This aims to generate cartesian coordinates from zmat values"""

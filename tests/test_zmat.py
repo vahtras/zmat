@@ -2,7 +2,7 @@ import math
 import unittest
 import numpy.testing
 from util import full
-from ..zmat import Atom, Mol
+from ..zmat import Atom, Mol, first_index, read_params
 from .sample_molecules import molinp
 
 tmpdir = '/tmp'
@@ -12,6 +12,7 @@ def zinit(case):
     # remove empty lines
     while '' in lines:
         lines.remove('')
+    print "zinit:lines",lines
     return lines
 
 
@@ -260,6 +261,25 @@ class AtomTest(unittest.TestCase):
         "H 2 R 1 A",
         "Variables:",
         "R = 0.7",
+        "A = 120.0"
+            ])
+            self.assertListEqual(m.zmat, ["H", "O 1 R", "H 2 R 1 A"])
+            self.assertDictEqual(m.params, {"R" : 0.7, "A" : 120*math.pi/180})
+            self.assertEqual(len(m.atomlist), 3)
+            self.assertEqual(len(m.atomtypes), 2)
+            self.assertIn("O", m.atomtypes)
+            self.assertIn("H", m.atomtypes)
+            self.assertEqual(len(m.atomtypes["O"]), 1)
+            self.assertEqual(len(m.atomtypes["O"]), 1)
+
+    def test_Mol_read_4C(self):
+            m = Mol([
+        "H",
+        "O 1 R",
+        "H 2 R 1 A",
+        "Variables:",
+        "R = 0.7",
+        "Constants:",
         "A = 120.0"
             ])
             self.assertListEqual(m.zmat, ["H", "O 1 R", "H 2 R 1 A"])
@@ -666,6 +686,23 @@ O   0.000000   0.000000   0.000000
         h=open('/tmp/yo.mol', 'r').read()
         assert href == h
 
+    def test_zlast(self):
+        lines = ["A", "B", "C"]
+        self.assertEqual(first_index(("A",), lines), 0)
+        self.assertEqual(first_index(("B",), lines), 1)
+        self.assertEqual(first_index(("C",), lines), 2)
+        self.assertEqual(first_index(("D",), lines), 3)
+        self.assertEqual(first_index(("A", "B"), lines), 0)
+        self.assertEqual(first_index(("A", "C"), lines), 0)
+        self.assertEqual(first_index(("A", "D"), lines), 0)
+        self.assertEqual(first_index(("B", "C"), lines), 1)
+        self.assertEqual(first_index(("B", "D"), lines), 1)
+        self.assertEqual(first_index(("C", "D"), lines), 2)
+
+    def test_read_tag_to_dict(self):
+        lines = ["Dum", "Tag:", "a=1", "b=2", "End:"]
+        self.assertDictEqual(read_params('Tag:', lines), {'a': 1.0, 'b': 2.0})
+        self.assertDictEqual(read_params('No:', lines), {})
 
 if __name__ == "__main__":
     unittest.main()
