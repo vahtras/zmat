@@ -1,6 +1,6 @@
 import math 
 import unittest
-from numpy.testing import assert_allclose
+import numpy.testing
 from util import full
 from ..zmat import Atom, Mol
 from .sample_molecules import molinp
@@ -15,36 +15,6 @@ def zinit(case):
     print "zinit:lines",lines
     return lines
 
-def assert_zmat_geometry(molecule, desired):
-    print molecule
-    lines = zinit(molecule)
-    m = Mol(lines)
-    m.update_cartesian()
-
-    actual = []
-
-    atoms = len(m.atomlist)
-
-    if atoms > 1:
-        b, a = m.atomlist[:2]
-        actual.append(a.coor.dist(b.coor))
-
-    if atoms > 2:
-        a = m.atomlist[2]
-        b, c = [m.atomlist[i] for i in a.refs]
-        actual.append(a.coor.dist(b.coor))
-        actual.append(a.coor.angle3d(b.coor, c.coor))
-
-    for a in m.atomlist[3:]:
-        b, c, d = [m.atomlist[i] for i in a.refs]
-        actual.append(a.coor.dist(b.coor))
-        actual.append(a.coor.angle3d(b.coor, c.coor))
-        actual.append(a.coor.dihedrald(b.coor, c.coor, d.coor))
-
-
-    for d, a in zip(desired, actual):
-        print d, a
-        assert_allclose(d, a)
 
 class AtomTest(unittest.TestCase):
 
@@ -53,6 +23,40 @@ class AtomTest(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def assert_allclose(self, *args, **kwargs):
+        numpy.testing.assert_allclose(*args, **kwargs)
+
+    def assert_zmat_geometry(self, molecule, desired):
+        print molecule
+        lines = zinit(molecule)
+        m = Mol(lines)
+        m.update_cartesian()
+
+        actual = []
+
+        atoms = len(m.atomlist)
+
+        if atoms > 1:
+            b, a = m.atomlist[:2]
+            actual.append(a.coor.dist(b.coor))
+
+        if atoms > 2:
+            a = m.atomlist[2]
+            b, c = [m.atomlist[i] for i in a.refs]
+            actual.append(a.coor.dist(b.coor))
+            actual.append(a.coor.angle3d(b.coor, c.coor))
+
+        for a in m.atomlist[3:]:
+            b, c, d = [m.atomlist[i] for i in a.refs]
+            actual.append(a.coor.dist(b.coor))
+            actual.append(a.coor.angle3d(b.coor, c.coor))
+            actual.append(a.coor.dihedrald(b.coor, c.coor, d.coor))
+
+
+        for d, a in zip(desired, actual):
+            print d, a
+            self.assert_allclose(d, a)
 
     def test_first(self):
         obj = Atom("H")
@@ -63,7 +67,7 @@ class AtomTest(unittest.TestCase):
 
     def test_first_coor(self):
         obj = Atom("H")
-        assert_allclose(obj.coor, (0, 0, 0))
+        self.assert_allclose(obj.coor, (0, 0, 0))
 
     def test_second(self):
         Atom("H")
@@ -77,7 +81,7 @@ class AtomTest(unittest.TestCase):
         Atom("H")
         obj = Atom("He 1 1.0")
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 0, 0))
+        self.assert_allclose(obj.coor, (1, 0, 0))
 
     def test_second_par_undef(self):
         Atom("H")
@@ -102,7 +106,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("He 1 R")
         Atom.params.update({'R': 1.0})
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 0, 0))
+        self.assert_allclose(obj.coor, (1, 0, 0))
 
     def test_third(self):
         Atom("H")
@@ -120,7 +124,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 1, 0))
+        self.assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_R(self):
         Atom("H")
@@ -138,7 +142,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 1, 0))
+        self.assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_A(self):
         Atom("H")
@@ -147,7 +151,7 @@ class AtomTest(unittest.TestCase):
         obj.params["R"] = 1.0
         obj.params["A"] = math.pi/2
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 1, 0))
+        self.assert_allclose(obj.coor, (1, 1, 0))
 
     def test_third_par_RA(self):
         Atom("H")
@@ -155,7 +159,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 R 1 A")
         obj.params.update({"R": 1.0, "A": math.pi/2})
         obj.update_cartesian()
-        assert_allclose(obj.coor, (1, 1, 0))
+        self.assert_allclose(obj.coor, (1, 1, 0))
 
     def test_general(self):
         Atom("H")
@@ -174,7 +178,7 @@ class AtomTest(unittest.TestCase):
         Atom("Li 2 1.0 1 90")
         obj = Atom("B 3 1.0 2 90 1 180")
         obj.update_cartesian()
-        assert_allclose(obj.coor, (2, 1, 0), atol=1e-7)
+        self.assert_allclose(obj.coor, (2, 1, 0), atol=1e-7)
 
     def test_general_par(self):
         Atom("H")
@@ -298,14 +302,14 @@ class AtomTest(unittest.TestCase):
     def test_update_cartesian_1(self):
         m = Mol(["H"])
         m.update_cartesian()
-        assert_allclose(m.atomlist[0].coor.norm2(), 0)
+        self.assert_allclose(m.atomlist[0].coor.norm2(), 0)
 
     def test_update_cartesian_2(self):
         m = Mol(["H", "H 1 0.7"])
         m.update_cartesian()
         H1, H2 = m.atomlist
         R12 = (H1.coor - H2.coor).norm2()
-        assert_allclose(R12, 0.7)
+        self.assert_allclose(R12, 0.7)
 
     def test_update_cartesian_3(self):
         m = Mol([
@@ -317,7 +321,7 @@ class AtomTest(unittest.TestCase):
         m.update_cartesian()
         H1, H2 = m.atomlist
         R12 = (H1.coor - H2.coor).norm2()
-        assert_allclose(R12, 0.7)
+        self.assert_allclose(R12, 0.7)
 
 
     def test_Mol_linear(self):
@@ -336,35 +340,35 @@ class AtomTest(unittest.TestCase):
 
         H12 = (H1 - H2).norm2()
         H23 = (H2 - H3).norm2()
-        assert_allclose(H12, 0.925)
-        assert_allclose(H23, 0.925)
+        self.assert_allclose(H12, 0.925)
+        self.assert_allclose(H23, 0.925)
 
 
 
 
     def test_h2h(self):
-        assert_zmat_geometry('h2h',[0.9246, 0.9246, 180])
+        self.assert_zmat_geometry('h2h',[0.9246, 0.9246, 180])
 
     def test_h(self):
-        assert_zmat_geometry('h',[])
+        self.assert_zmat_geometry('h',[])
 
     def test_h2(self):
-        assert_zmat_geometry('h2',[0.7361])
+        self.assert_zmat_geometry('h2',[0.7361])
 
     def test_h2o(self):
-        assert_zmat_geometry('h2o', [0.95, 0.95, 105])
+        self.assert_zmat_geometry('h2o', [0.95, 0.95, 105])
 
     def test_nh2(self):
-        assert_zmat_geometry('nh2', [1.0191, 1.0191, 104.27])
+        self.assert_zmat_geometry('nh2', [1.0191, 1.0191, 104.27])
 
     def test_n2h(self):
-        assert_zmat_geometry('n2h', [1.041, 1.169, 116.566])
+        self.assert_zmat_geometry('n2h', [1.041, 1.169, 116.566])
 
     def test_ph2(self):
-        assert_zmat_geometry('ph2', [1.4149, 1.4149, 92.4849])
+        self.assert_zmat_geometry('ph2', [1.4149, 1.4149, 92.4849])
 
     def test_nh3(self):
-        assert_zmat_geometry('nh3', [
+        self.assert_zmat_geometry('nh3', [
             1.0, 
             1.0058, 110.2596,
             1.0058, 110.2596, 120,
@@ -372,7 +376,7 @@ class AtomTest(unittest.TestCase):
             )
 
     def test_ph3(self):
-        assert_zmat_geometry('ph3', [
+        self.assert_zmat_geometry('ph3', [
             1.0, 
             1.410, 122.0756, 
             1.410, 122.0756, 120,
@@ -380,16 +384,16 @@ class AtomTest(unittest.TestCase):
             ])
 
     def test_h3(self):
-        assert_zmat_geometry('h3', [0.925, 0.925, 180])
+        self.assert_zmat_geometry('h3', [0.925, 0.925, 180])
 
     def test_h2h(self):
-        assert_zmat_geometry('h2h', [0.9246, 0.9246, 180])
+        self.assert_zmat_geometry('h2h', [0.9246, 0.9246, 180])
 
     def test_ch3(self):
-        assert_zmat_geometry('ch3', [1.074, 1.074, 120, 1.074, 120, 180])
+        self.assert_zmat_geometry('ch3', [1.074, 1.074, 120, 1.074, 120, 180])
 
     def test_ch4(self):
-        assert_zmat_geometry('ch4', [
+        self.assert_zmat_geometry('ch4', [
             1.085,
             1.085, 109.4712206,
             1.085, 109.4712206, 120,
@@ -397,7 +401,7 @@ class AtomTest(unittest.TestCase):
             )
 
     def test_ch3oh(self):
-        assert_zmat_geometry('ch3oh', [
+        self.assert_zmat_geometry('ch3oh', [
             1.408,
             1.090, 112.020,
             1.084, 106.854, 241.4-360,
@@ -409,7 +413,7 @@ class AtomTest(unittest.TestCase):
 
 
     def test_ch2oh(self):
-        assert_zmat_geometry('ch2oh', [
+        self.assert_zmat_geometry('ch2oh', [
             1.074,
             1.078, 120.906,
             1.356, 113.472, 150.2,
@@ -418,7 +422,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_c2h6(self):
-        assert_zmat_geometry('c2h6',
+        self.assert_zmat_geometry('c2h6',
            [1.522, 
             1.087, 111.295, 
             1.087, 111.295, 120,
@@ -432,7 +436,7 @@ class AtomTest(unittest.TestCase):
 
 
     def test_c2h5(self):
-        assert_zmat_geometry('c2h5',
+        self.assert_zmat_geometry('c2h5',
             [1.485, 
             1.094, 111.744,
             1.077, 120.892, -85.534,
@@ -443,16 +447,16 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_n2h2(self):
-        assert_zmat_geometry('n2h2', [1.023, 
+        self.assert_zmat_geometry('n2h2', [1.023, 
             1.227, 107.343,
             1.023, 107.343, 180
             ])
 
     def test_TS01(self):
-        assert_zmat_geometry('TS01', [1.371, 1.114, 180])
+        self.assert_zmat_geometry('TS01', [1.371, 1.114, 180])
 
     def test_TS02(self):
-        assert_zmat_geometry('TS02', [
+        self.assert_zmat_geometry('TS02', [
             0.963,
             1.264, 100.451,
             0.848, 166.210, 0.0
@@ -460,7 +464,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS03(self):
-        assert_zmat_geometry('TS03', [
+        self.assert_zmat_geometry('TS03', [
             1.080,
             1.080, 114.677,
             1.080, 114.677, 135.8,
@@ -470,7 +474,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS04(self):
-        assert_zmat_geometry('TS04', [
+        self.assert_zmat_geometry('TS04', [
             1.082,
             1.082, 113.227,
             1.244, 104.276, 116.7,
@@ -481,7 +485,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS05(self):
-        assert_zmat_geometry('TS05', [
+        self.assert_zmat_geometry('TS05', [
             1.374,
             1.087, 115.089,
             1.081, 109.674, 230.6 - 360,
@@ -492,7 +496,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS06(self):
-        assert_zmat_geometry('TS06', [
+        self.assert_zmat_geometry('TS06', [
             0.925,
             0.925, 180
             ]
@@ -500,7 +504,7 @@ class AtomTest(unittest.TestCase):
 
 
     def test_TS07(self):
-        assert_zmat_geometry('TS07', [
+        self.assert_zmat_geometry('TS07', [
             0.959,
             1.248, 108.803,
             1.151, 150.779, 305.5 - 360,
@@ -511,7 +515,7 @@ class AtomTest(unittest.TestCase):
 
 
     def test_TS08(self):
-        assert_zmat_geometry('TS08', [
+        self.assert_zmat_geometry('TS08', [
             1.4265,
             1.3981, 180,
             1.0796, 101.66, 0,
@@ -521,7 +525,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS09(self):
-        assert_zmat_geometry('TS09', [
+        self.assert_zmat_geometry('TS09', [
             1.508,
             1.0866, 110.65,
             1.084, 111.01, 119.87,
@@ -535,14 +539,14 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS10(self):
-        assert_zmat_geometry('TS10', [
+        self.assert_zmat_geometry('TS10', [
             1.440,
             0.772, 180
             ]
         )
 
     def test_TS11(self):
-        assert_zmat_geometry('TS11', [
+        self.assert_zmat_geometry('TS11', [
             1.179,
             1.289, 360 - 181.05,
             1.082, 103.9, 180,
@@ -552,7 +556,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS12(self):
-        assert_zmat_geometry('TS12', [
+        self.assert_zmat_geometry('TS12', [
             1.2587,
             1.4851, 170.61,
             1.4152, 92.92, 45,
@@ -561,20 +565,20 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS13(self):
-        assert_zmat_geometry('TS13', [
+        self.assert_zmat_geometry('TS13', [
             1.4850
             ]
         )
 
     def test_TS14(self):
-        assert_zmat_geometry('TS14', [
+        self.assert_zmat_geometry('TS14', [
             1.2145,
             0.8941, 180
             ]
         )
 
     def test_TS15(self):
-        assert_zmat_geometry('TS15', [
+        self.assert_zmat_geometry('TS15', [
             1.06,
             1.25, 105.8,
             1.17, 106.2, 0,
@@ -583,7 +587,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS16(self):
-        assert_zmat_geometry('TS16', [
+        self.assert_zmat_geometry('TS16', [
             1.2385,
             1.4046, 175.26,
             1.3372, 95.27, 0
@@ -591,14 +595,14 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS17(self):
-        assert_zmat_geometry('TS17', [
+        self.assert_zmat_geometry('TS17', [
             2.44,
             2.66, 131.4
             ]
         )
 
     def test_TS18(self):
-        assert_zmat_geometry('TS18', [
+        self.assert_zmat_geometry('TS18', [
             1.4447,
             1.0769, 100.77,
             1.0773, 104.51, 119.42,
@@ -609,7 +613,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS19(self):
-        assert_zmat_geometry('TS19', [
+        self.assert_zmat_geometry('TS19', [
             1.3960,
             1.5118, 105.85,
             1.0820, 103.28, 113.50,
@@ -623,7 +627,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_TS20(self):
-        assert_zmat_geometry('TS20', [
+        self.assert_zmat_geometry('TS20', [
             1.517,
             1.254, 111.088,
             1.313, 175.404, 0,
