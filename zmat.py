@@ -87,17 +87,6 @@ class Atom:
     def d(self):
         return Atom.params[self.D]
           
-    def __str__(self):
-        """Return atom line in mol style"""
-        retstr = "      %4s    1\n" % self.charge
-        #retstr = ""
-        retstr += "%-2s" % self.label
-        retstr += "%20.10f %20.10f %20.10f\n" % (
-            self.coor[0], self.coor[1], self.coor[2]
-            )
-        if DEBUG:
-            print self.label, self.charge, self.R, self.A, self.D, self.refs
-        return retstr
 
     def update_cartesian(self):
         """This aims to generate cartesian coordinates from zmat values"""
@@ -139,17 +128,6 @@ class Mol():
                 self.params[P] = float(V)*math.pi/180
             else:
                 self.params[P] = float(V)
-
-    def __str__(self):
-        retstr = "\n".join(self.zmat) + "\n\n"
-        for (k, v) in zip(self.params.keys(), self.params.values()):
-            if k in Atom.angular:
-                retstr += "%s = %f\n" % (k, v*180/math.pi)
-            else:
-                retstr += "%s = %f\n" % (k, v)
-        #for a in self.atomlist: retstr += str(a)
-        return retstr
-
 
     def update_cartesian(self):
         """This aims to generate cartesian coordinates from zmat values"""
