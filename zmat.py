@@ -5,6 +5,10 @@ from numpy import allclose
 from util import full
 DEBUG = False
 DEG2RAD = math.pi/180
+ELEMENTS = ["X",
+     "H", "He",
+     "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+     "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
 
 class Atom:
     """Input line from ZMAT section defines an atom instance
@@ -19,16 +23,11 @@ class Atom:
              A
              D
              refs: refer to previous atoms, e.g. [I], [I, J], [I, J, K]
-             charge: charge of element E (float)
              coor: cartesian coordinates: are only set to zero here
     """
     angular = set()
     params = {None: None}
     atomlist = []
-    charge = ["X",
-         "H", "He",
-         "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-         "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
 
 
     def __init__(self, line):
@@ -45,7 +44,7 @@ class Atom:
 
         if words: #what happens if empty, nothing
             self.label = words[0]
-            self.charge = float(Atom.charge.index(self.label))
+            self.charge = float(ELEMENTS.index(self.label))
 
             if lw > 2: 
                 self.R = words[2]
