@@ -44,7 +44,6 @@ class Atom:
 
         if words: #what happens if empty, nothing
             self.label = words[0]
-            self.charge = float(ELEMENTS.index(self.label))
 
             if lw > 2: 
                 self.R = words[2]
@@ -73,6 +72,10 @@ class Atom:
             self.coor = full.matrix(3)
             self.atomrefs = [Atom.atomlist[i] for i in self.refs]
             Atom.atomlist.append(self)
+
+    @property
+    def charge(self):
+        return float(ELEMENTS.index(self.label))
 
     @property
     def r(self):
