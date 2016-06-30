@@ -5,12 +5,14 @@ from numpy import allclose
 from util import full
 DEBUG = False
 DEG2RAD = math.pi/180
-ELEMENTS = ["X",
-     "H", "He",
-     "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-     "Na", "Mg","Al","Si", "P", "S","Cl", "Ar"]
+ELEMENTS = [
+    "X",
+    "H", "He",
+    "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar"
+    ]
 
-class Atom:
+class Atom(object):
     """Input line from ZMAT section defines an atom instance
        E I R J A K D
        E element name of current atom
@@ -34,7 +36,6 @@ class Atom:
         """Member parameters describe relation to other atoms
         """
         words = line.split()
-        lw = len(words)
        
         self.R = None
         self.A = None
@@ -45,33 +46,32 @@ class Atom:
         if words: #what happens if empty, nothing
             self.label = words[0]
 
-            if lw > 2: 
+            try:
                 self.R = words[2]
-                try:
-                    Atom.params[self.R] = float(self.R)
-                except ValueError:
-                    Atom.params[self.R] = None
-                
-            if lw > 4: 
+                self.update_params(self.R)
+
                 self.A = words[4]
-                try:
-                    Atom.params[self.A] = float(self.A)*DEG2RAD
-                except ValueError:
-                    Atom.params[self.A] = None
-                    Atom.angular.update([self.A])
+                self.update_params(self.A, angular=True)
 
-            if lw > 6: 
                 self.D = words[6]
-                try:
-                    Atom.params[self.D] = float(self.D)*DEG2RAD
-                except ValueError:
-                    Atom.params[self.D] = None
-                    Atom.angular.update([self.D])
-
-            self.refs = [int(i) - 1 for i in words[1:lw:2]]
+                self.update_params(self.D, angular=True)
+            except IndexError:
+                pass
+                
+            self.refs = [int(i) - 1 for i in words[1::2]]
             self.coor = full.matrix(3)
             self.atomrefs = [Atom.atomlist[i] for i in self.refs]
             Atom.atomlist.append(self)
+
+    def update_params(self, word, angular=False):
+        try:
+            Atom.params[word] = float(word)
+            if angular:
+                Atom.params[word] *= DEG2RAD
+        except ValueError:
+            Atom.params[word] = None
+            if angular:
+                Atom.angular.update([word])
 
     @property
     def charge(self):
