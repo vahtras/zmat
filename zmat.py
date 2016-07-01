@@ -94,6 +94,9 @@ class Atom(object):
         """This aims to generate cartesian coordinates from zmat values"""
         update_cartesian(self.atomlist, self.params)
 
+    def isbonded(self, other):
+        return self.atomrefs[0] is other
+
 def first_index(tags, lines):
     indices = [lines.index(tag) if tag in lines else len(lines) for tag in tags]
     return min(indices)
@@ -155,32 +158,28 @@ def update_cartesian(atomlist, params):
     # First special cases up to three atoms
     #
     if len(atomlist) == 1:
-        return 0
+        pass
     elif len(atomlist) == 2:
         a, b = atomlist[:]
-        rb = b.coor
-        
         assert b.refs[0] == 0
-        #
-        # Retrievs BA parametrized distance if defined 
-        # the constant value in the ZMAT input
-        #
-        rb[0] = params.get(b.R, b.r)
+        b.coor[0] = params.get(b.R, b.r)
     elif len(atomlist) == 3:
         a, b, c = atomlist
         rb, rc = b.coor, c.coor
         #
-        rb[0] = params.get(b.R, b.r)
+        b.coor[0] = params.get(b.R, b.r)
         #
-        if c.refs[0] == 0: #want: is a
+        if c.isbonded(a):
         #
-        # c is bonded to a
+        #      b
+        #     /
+        # c--a
         #
             Rca = params.get(c.R, c.r)
             cab = params.get(c.A, c.a)
             rc[0] = Rca*math.cos(cab)
             rc[1] = Rca*math.sin(cab)
-        elif c.refs[0] == 1:
+        elif c.isbonded(b):
         #
         # c is bonded to b
         #
@@ -198,7 +197,7 @@ def update_cartesian(atomlist, params):
         #
         a, b, c = atomlist[:3]
         b.coor[0] = params.get(b.R, b.r)
-        if c.refs[0] == 0:
+        if c.isbonded(a):
             CA = params.get(c.R, c.r)
             CAB = params.get(c.A, c.a)
             c.coor[0] = CA*math.cos(CAB)
@@ -209,10 +208,7 @@ def update_cartesian(atomlist, params):
             c.coor[0] = b.coor[0] - CB*math.cos(CBA)
             c.coor[1] = CB*math.sin(CBA)
         for a in atomlist[3:]:
-            #b, c, d = [atomlist[i] for i in a.refs] BUG
-            b = atomlist[a.refs[0]]
-            c = atomlist[a.refs[1]]
-            d = atomlist[a.refs[2]]
+            b, c, d = a.atomrefs
             A, B, C, D = a.coor, b.coor, c.coor, d.coor
             AB = params.get(a.R, a.r)
             ABC = params.get(a.A, a.a)
@@ -221,9 +217,6 @@ def update_cartesian(atomlist, params):
             # one known case where this fails, negated paramter
                 if a.D[0] == "-":
                     ABCD = -params.get(a.D[1:], a.d)
-            #print "AB", AB
-            #print "ABC", ABC
-            #print "ABCD", ABCD
             #
             # Translate A
             #

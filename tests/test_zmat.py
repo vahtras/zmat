@@ -704,5 +704,15 @@ O   0.000000   0.000000   0.000000
         self.assertDictEqual(read_params('Tag:', lines), {'a': 1.0, 'b': 2.0})
         self.assertDictEqual(read_params('No:', lines), {})
 
+    def test_is_bonded(self):
+        m = Mol(["C", "O 1 R"])
+        a, b = m.atomlist
+        self.assertTrue(b.isbonded(a))
+
+    def test_is_notbonded(self):
+        m = Mol(["C", "O 1 R", "O 2 R 1 A"])
+        a, b, c = m.atomlist
+        self.assertFalse(c.isbonded(a))
+
 if __name__ == "__main__":
     unittest.main()
