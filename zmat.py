@@ -184,49 +184,20 @@ def update_cartesian(atomlist, params):
                 if a.D[0] == "-":
                     ABCD = -params.get(a.D[1:], a.d)
             #
-            # Translate A
+            # Translate along CB
             #
-            # Initial setup (from origin)
-            if allclose(A,  [0, 0, 0]):
-                # Translate along CB
-                A[:] = B + (AB/(B-C).norm2()) * (B-C)
-                # Rotate in BCD plane
-                n = ((D-C).cross(B-C))
-                ABC0 = A.angle3(B, C)
-#  rot      >>>>>>  A.rot(ABC-ABC0, n)  #rotate a around B
-                A[:] = B + (A-B).rot(ABC-ABC0, n)
-                # Dihedral rotation
-                ABCD0 = A.dihedral(B, C, D)
-                #A.rot(ABCD - ABCD0, B-C)
-                A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
-            else:
-            # Update from preious origin)
-                A[:] = B + AB*(A - B)/(A - B).norm2()
-            #
-            # Rotate A-B in the ABC plane:
-            #
-            # Current angle
-            #
-                ABC0 = A.angle3(B, C)
-            #
-            # Normal #If parallel, after initial x translation
-                      #more cases?
-            #
-                eps = 1e-7
-                if abs(ABC0) < eps:
-                    # if AB andj
-                    N = full.init([0., 1., 0.])
-                else:
-                    N = (A-B).cross(C-B)
+            A[:] = B + (AB/(B-C).norm2()) * (B-C)
 
-                A.rot(ABC-ABC0, N, B)
             #
-            # Current dihedral
+            # Rotate in BCD plane
             #
+            n = ((D-C).cross(B-C))
+            ABC0 = A.angle3(B, C)
+            A[:] = B + (A-B).rot(ABC-ABC0, n)
 
-                ABCD0 = A.dihedral(B, C, D)
-                print "ABCD0", ABCD0
-                A.rot(ABCD - ABCD0, B-C)
+            # Dihedral rotation
+            ABCD0 = A.dihedral(B, C, D)
+            A[:] = B + (A-B).rot(ABCD - ABCD0, B-C)
             
 
 
