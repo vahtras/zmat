@@ -157,46 +157,12 @@ def update_cartesian(atomlist, params):
     #
     # First special cases up to three atoms
     #
-    if len(atomlist) == 1:
-        pass
-    elif len(atomlist) == 2:
-        a, b = atomlist[:]
+    if len(atomlist) > 1:
+        a, b = atomlist[:2]
         assert b.refs[0] == 0
         b.coor[0] = params.get(b.R, b.r)
-    elif len(atomlist) == 3:
-        a, b, c = atomlist
-        rb, rc = b.coor, c.coor
-        #
-        b.coor[0] = params.get(b.R, b.r)
-        #
-        if c.isbonded(a):
-        #
-        #      b
-        #     /
-        # c--a
-        #
-            Rca = params.get(c.R, c.r)
-            cab = params.get(c.A, c.a)
-            rc[0] = Rca*math.cos(cab)
-            rc[1] = Rca*math.sin(cab)
-        elif c.isbonded(b):
-        #
-        # c is bonded to b
-        #
-            Rcb = params.get(c.R, c.r)
-            cba = params.get(c.A, c.a)
-            rc[0] = rb[0] - Rcb*math.cos(cba)
-            rc[1] = Rcb*math.sin(cba)
-        else:
-            raise SystemExit(1)
-    else: 
-        #
-        # General case now.
-        #
-        # First three
-        #
-        a, b, c = atomlist[:3]
-        b.coor[0] = params.get(b.R, b.r)
+    if len(atomlist) > 2:
+        c = atomlist[2]
         if c.isbonded(a):
             CA = params.get(c.R, c.r)
             CAB = params.get(c.A, c.a)
