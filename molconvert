@@ -9,6 +9,5 @@ if __name__ == "__main__":
     # defalt
     main(
         pargs.from_mol, pargs.to_mol, 
-        C=pargs.alpha_C, H=pargs.alpha_H, O=pargs.alpha_O
         )
        
