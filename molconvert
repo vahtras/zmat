@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+from molconvert import main
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('from_mol')
+    parser.add_argument('to_mol')
+    parser.add_argument('--alpha_C', default=ALPHA_ALKENE["C"])
+    parser.add_argument('--alpha_H', default=ALPHA_ALKENE["H"])
+    parser.add_argument('--alpha_O', default=ALPHA_ALKENE["O"])
+    pargs = parser.parse_args()
+    # defalt
+    main(
+        pargs.from_mol, pargs.to_mol, 
+        C=pargs.alpha_C, H=pargs.alpha_H, O=pargs.alpha_O
+        )
+       
