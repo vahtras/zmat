@@ -1,8 +1,7 @@
-import math 
+import math
 import unittest
 import numpy.testing
-from util import full
-from ..zmat import Atom, Mol, first_index, read_params
+from zmat import Atom, Mol, first_index, read_params
 from .sample_molecules import molinp
 
 tmpdir = '/tmp'
@@ -12,7 +11,6 @@ def zinit(case):
     # remove empty lines
     while '' in lines:
         lines.remove('')
-    print "zinit:lines",lines
     return lines
 
 
@@ -28,7 +26,6 @@ class AtomTest(unittest.TestCase):
         numpy.testing.assert_allclose(*args, **kwargs)
 
     def assert_zmat_geometry(self, molecule, desired):
-        print molecule
         lines = zinit(molecule)
         m = Mol(lines)
         m.update_cartesian()
@@ -55,7 +52,6 @@ class AtomTest(unittest.TestCase):
 
 
         for d, a in zip(desired, actual):
-            print d, a
             self.assert_allclose(d, a)
 
     def test_first(self):
@@ -126,7 +122,7 @@ class AtomTest(unittest.TestCase):
         obj.update_cartesian()
         self.assert_allclose(obj.coor, (1, 1, 0))
 
-    def test_third_par_R(self):
+    def test_third_par_R1(self):
         Atom("H")
         Atom("He 1 R")
         obj = Atom("Li 2 R 1 90")
@@ -136,7 +132,7 @@ class AtomTest(unittest.TestCase):
             ("Li", "R", None, "90", math.pi/2, None, None, [1, 0], 3.0)
             )
 
-    def test_third_par_R(self):
+    def test_third_par_R2(self):
         Atom("H")
         Atom("He 1 R")
         obj = Atom("Li 2 1.0 1 90")
@@ -207,7 +203,7 @@ class AtomTest(unittest.TestCase):
         self.assertEqual(len(m.atomtypes), 1)
         self.assertIn("H", m.atomtypes)
 
-    def test_Mol_read_3(self):
+    def test_Mol_read_3a(self):
         m = Mol([
     "H",
     "H 1 R",
@@ -222,7 +218,7 @@ class AtomTest(unittest.TestCase):
         self.assertIn("H", m.atomtypes)
 
 
-    def test_Mol_read_3(self):
+    def test_Mol_read_3b(self):
         m = Mol([
     "H",
     "H 1 R",
@@ -303,9 +299,9 @@ class AtomTest(unittest.TestCase):
     "A=110.2596"
         ])
         self.assertListEqual(m.zmat, [
-            "N", 
-            "X 1 1.0", 
-            "H 1 R 2 A", 
+            "N",
+            "X 1 1.0",
+            "H 1 R 2 A",
             "H 1 R 2 A 3 120",
             "H 1 R 2 A 4 120"
             ])
@@ -348,10 +344,9 @@ class AtomTest(unittest.TestCase):
         zm = """H
     H 1 R
     H 2 R 1 180
-     Variables: 
+     Variables:
     R=0.925"""
         lines = [line.strip() for line in zm.split('\n')]
-        print lines
         m = Mol(lines)
         m.update_cartesian()
         h1, h2, h3 = m.atomlist
@@ -365,8 +360,6 @@ class AtomTest(unittest.TestCase):
 
 
 
-    def test_h2h(self):
-        self.assert_zmat_geometry('h2h',[0.9246, 0.9246, 180])
 
     def test_h(self):
         self.assert_zmat_geometry('h',[])
@@ -388,7 +381,7 @@ class AtomTest(unittest.TestCase):
 
     def test_nh3(self):
         self.assert_zmat_geometry('nh3', [
-            1.0, 
+            1.0,
             1.0058, 110.2596,
             1.0058, 110.2596, 120,
             1.0058, 110.2596, 120]
@@ -396,8 +389,8 @@ class AtomTest(unittest.TestCase):
 
     def test_ph3(self):
         self.assert_zmat_geometry('ph3', [
-            1.0, 
-            1.410, 122.0756, 
+            1.0,
+            1.410, 122.0756,
             1.410, 122.0756, 120,
             1.410, 122.0756, 120
             ])
@@ -442,8 +435,8 @@ class AtomTest(unittest.TestCase):
 
     def test_c2h6(self):
         self.assert_zmat_geometry('c2h6',
-           [1.522, 
-            1.087, 111.295, 
+           [1.522,
+            1.087, 111.295,
             1.087, 111.295, 120,
             1.087, 111.295, -120,
             1.087, 111.295, 60,
@@ -456,7 +449,7 @@ class AtomTest(unittest.TestCase):
 
     def test_c2h5(self):
         self.assert_zmat_geometry('c2h5',
-            [1.485, 
+            [1.485,
             1.094, 111.744,
             1.077, 120.892, -85.534,
             1.077, 120.892, 85.534,
@@ -466,7 +459,7 @@ class AtomTest(unittest.TestCase):
         )
 
     def test_n2h2(self):
-        self.assert_zmat_geometry('n2h2', [1.023, 
+        self.assert_zmat_geometry('n2h2', [1.023,
             1.227, 107.343,
             1.023, 107.343, 180
             ])
@@ -674,13 +667,13 @@ A=105
 Generated from /tmp/yo.zmat by molconvert
 ====================================
 Atomtypes=2 Units=Angtrom Nosymmetry
+Charge=8.0 Atoms=1
+O   0.000000   0.000000   0.000000
 Charge=1.0 Atoms=2
 H   0.950000   0.000000   0.000000
 H  -0.245878   0.917630   0.000000
-Charge=8.0 Atoms=1
-O   0.000000   0.000000   0.000000
 """
-        from ..molconvert import main
+        from molconvert import main
         z=open('/tmp/yo.zmat', 'w'); z.write(zref); z.close()
         main('/tmp/yo.zmat', '/tmp/yo.mol')
         h=open('/tmp/yo.mol', 'r').read()

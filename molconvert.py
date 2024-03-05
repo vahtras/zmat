@@ -46,8 +46,7 @@ def main(from_mol, to_mol, **kwargs):
     # Determine output file by extension
     #
     _, to_ext = os.path.splitext(to_mol)
-    if to_ext not in TOS: 
-        print to_ext, TOS
+    if to_ext not in TOS:
         raise(UnsupportedMoltype)
 
 

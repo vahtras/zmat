@@ -4,3 +4,4 @@ venv*
 htmlcov
 .coverage
 .cache
+.python-version
