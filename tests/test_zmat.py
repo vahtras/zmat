@@ -1,5 +1,6 @@
 import math
 import unittest
+import numpy as np
 import numpy.testing
 from zmat import Atom, Mol, first_index, read_params
 from .sample_molecules import molinp
@@ -63,7 +64,7 @@ class AtomTest(unittest.TestCase):
 
     def test_first_coor(self):
         obj = Atom("H")
-        self.assert_allclose(obj.coor, (0, 0, 0))
+        numpy.testing.assert_allclose(np.array(obj.coor), (0, 0, 0))
 
     def test_second(self):
         Atom("H")
@@ -77,7 +78,7 @@ class AtomTest(unittest.TestCase):
         Atom("H")
         obj = Atom("He 1 1.0")
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 0, 0))
+        numpy.testing.assert_allclose(np.array(obj.coor), (1, 0, 0))
 
     def test_second_par_undef(self):
         Atom("H")
@@ -102,7 +103,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("He 1 R")
         Atom.params.update({'R': 1.0})
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 0, 0))
+        numpy.testing.assert_allclose(numpy.array(obj.coor), (1, 0, 0))
 
     def test_third(self):
         Atom("H")
@@ -120,7 +121,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 1, 0))
+        numpy.testing.assert_allclose(numpy.array(obj.coor), (1, 1, 0))
 
     def test_third_par_R1(self):
         Atom("H")
@@ -138,7 +139,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 1.0 1 90")
         obj.params["R"] = 1.0
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 1, 0))
+        numpy.testing.assert_allclose(numpy.array(obj.coor), (1, 1, 0))
 
     def test_third_par_A(self):
         Atom("H")
@@ -147,7 +148,7 @@ class AtomTest(unittest.TestCase):
         obj.params["R"] = 1.0
         obj.params["A"] = math.pi/2
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 1, 0))
+        numpy.testing.assert_allclose(numpy.array(obj.coor), (1, 1, 0))
 
     def test_third_par_RA(self):
         Atom("H")
@@ -155,7 +156,7 @@ class AtomTest(unittest.TestCase):
         obj = Atom("Li 2 R 1 A")
         obj.params.update({"R": 1.0, "A": math.pi/2})
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (1, 1, 0))
+        numpy.testing.assert_allclose(numpy.array(obj.coor), (1, 1, 0))
 
     def test_general(self):
         Atom("H")
@@ -174,7 +175,7 @@ class AtomTest(unittest.TestCase):
         Atom("Li 2 1.0 1 90")
         obj = Atom("B 3 1.0 2 90 1 180")
         obj.update_cartesian()
-        self.assert_allclose(obj.coor, (2, 1, 0), atol=1e-7)
+        numpy.testing.assert_allclose(np.array(obj.coor), (2, 1, 0), atol=1e-7)
 
     def test_general_par(self):
         Atom("H")
