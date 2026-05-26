@@ -1,0 +1,15 @@
+[project]
+name = "zmat"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "blocked-matrix-utils>=1.1.0",
+    "numpy>=2.4.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
